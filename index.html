@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qxuan Photobooth • Minimalist Studio & Kiosk</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        studio: {
+                            50: '#FAFAFA',
+                            100: '#F4F4F5',
+                            200: '#E4E4E7',
+                            300: '#D4D4D8',
+                            400: '#A1A1AA',
+                            500: '#71717A',
+                            800: '#27272A',
+                            900: '#18181B',
+                            950: '#09090B',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Photobooth Styling & Print Rules -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-studio-50 text-studio-900 flex flex-col min-h-screen selection:bg-studio-200">
+
+    <!-- ======================================================================
+         TOP BAR: Minimalist Branding & Stepper Navigation
+         ====================================================================== -->
+    <header class="w-full bg-white/90 backdrop-blur-md border-b border-studio-200 sticky top-0 z-40 px-4 py-3 sm:px-6">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-studio-900 text-white flex items-center justify-center font-bold text-sm tracking-wider">
+                    Q
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-studio-900 leading-none">
+                        QXUAN <span class="font-normal text-studio-500">PHOTOBOOTH</span>
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-studio-400 font-medium tracking-wider uppercase mt-0.5">
+                        Clean Studio Experience
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stepper Progress Dots (Desktop/Tablet) -->
+            <div class="hidden md:flex items-center space-x-2 text-xs font-medium text-studio-400">
+                <span id="step-dot-1" class="step-badge px-2.5 py-1 rounded-full bg-studio-900 text-white">1. Mode</span>
+                <span class="text-studio-300">→</span>
+                <span id="step-dot-2" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">2. Kamera</span>
+                <span class="text-studio-300">→</span>
+                <span id="step-dot-3" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">3. Filter & Frame</span>
+                <span class="text-studio-300">→</span>
+                <span id="step-dot-4" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">4. Bayar QRIS</span>
+                <span class="text-studio-300">→</span>
+                <span id="step-dot-5" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">5. Cetak</span>
+            </div>
+
+            <!-- Header Controls: Fullscreen & Reset -->
+            <div class="flex items-center space-x-2">
+                <button id="btn-fullscreen" title="Kiosk Fullscreen" class="p-2 rounded-lg border border-studio-200 hover:bg-studio-100 text-studio-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================================
+         MAIN CONTENT STAGE (STEP-BY-STEP VIEWS)
+         ====================================================================== -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-center">
+
+        <!-- ==================================================================
+             STEP 1: PREPARATION & SELECTION (Layout, Ratio, Timer, Camera)
+             ================================================================== -->
+        <section id="view-step-1" class="w-full max-w-2xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-studio-900">Mulai Sesi Foto Anda</h2>
+                <p class="text-sm sm:text-base text-studio-500 mt-1">Pilih tata letak kolase, rasio aspek, dan durasi hitung mundur.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-studio-200 p-5 sm:p-7 shadow-sm space-y-6">
+                <!-- 1. Pilihan Mode Foto & Kolase -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
+                        Pilihan Mode & Kolase
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <button type="button" data-layout="single" class="layout-choice choice-card active p-3 rounded-xl flex flex-col items-center text-center">
+                            <svg class="w-7 h-7 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.75"/></svg>
+                            <span class="text-xs font-semibold">Single</span>
+                            <span class="text-[10px] opacity-75">1 Foto Penuh</span>
+                        </button>
+                        <button type="button" data-layout="collage_2x1" class="layout-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
+                            <svg class="w-7 h-7 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="9" rx="1.5" stroke-width="1.75"/><rect x="5" y="13" width="14" height="9" rx="1.5" stroke-width="1.75"/></svg>
+                            <span class="text-xs font-semibold">Strip 2x1</span>
+                            <span class="text-[10px] opacity-75">2 Foto Strip</span>
+                        </button>
+                        <button type="button" data-layout="collage_2x2" class="layout-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
+                            <svg class="w-7 h-7 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" stroke-width="1.75"/><rect x="13" y="3" width="8" height="8" rx="1" stroke-width="1.75"/><rect x="3" y="13" width="8" height="8" rx="1" stroke-width="1.75"/><rect x="13" y="13" width="8" height="8" rx="1" stroke-width="1.75"/></svg>
+                            <span class="text-xs font-semibold">Grid 2x2</span>
+                            <span class="text-[10px] opacity-75">4 Foto Grid</span>
+                        </button>
+                        <button type="button" data-layout="collage_3x1" class="layout-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
+                            <svg class="w-7 h-7 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="6" rx="1" stroke-width="1.75"/><rect x="6" y="9" width="12" height="6" rx="1" stroke-width="1.75"/><rect x="6" y="16" width="12" height="6" rx="1" stroke-width="1.75"/></svg>
+                            <span class="text-xs font-semibold">Strip 3x1</span>
+                            <span class="text-[10px] opacity-75">3 Foto Strip</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Pilihan Aspect Ratio -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
+                        Rasio Aspek Kamera
+                    </label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <button type="button" data-ratio="1:1" class="ratio-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
+                            <span class="text-xs font-bold font-mono">1 : 1</span>
+                            <span class="text-[10px] opacity-75 mt-0.5">Square / Kotak</span>
+                        </button>
+                        <button type="button" data-ratio="4:3" class="ratio-choice choice-card active p-3 rounded-xl flex flex-col items-center text-center">
+                            <span class="text-xs font-bold font-mono">4 : 3</span>
+                            <span class="text-[10px] opacity-75 mt-0.5">Classic Strip</span>
+                        </button>
+                        <button type="button" data-ratio="16:9" class="ratio-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
+                            <span class="text-xs font-bold font-mono">16 : 9</span>
+                            <span class="text-[10px] opacity-75 mt-0.5">Widescreen</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Pilihan Timer Countdown -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
+                        Timer Hitung Mundur
+                    </label>
+                    <div class="grid grid-cols-4 gap-2.5">
+                        <button type="button" data-timer="0" class="timer-choice choice-card p-3 rounded-xl text-center">
+                            <span class="text-xs font-semibold">Instan</span>
+                            <span class="block text-[10px] opacity-75">Off</span>
+                        </button>
+                        <button type="button" data-timer="3" class="timer-choice choice-card active p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold">3s</span>
+                            <span class="block text-[10px] opacity-75">3 Detik</span>
+                        </button>
+                        <button type="button" data-timer="5" class="timer-choice choice-card p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold">5s</span>
+                            <span class="block text-[10px] opacity-75">5 Detik</span>
+                        </button>
+                        <button type="button" data-timer="10" class="timer-choice choice-card p-3 rounded-xl text-center">
+                            <span class="text-xs font-bold">10s</span>
+                            <span class="block text-[10px] opacity-75">10 Detik</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tombol Action Mulai -->
+                <div class="pt-2">
+                    <button id="btn-start-session" class="btn-touch w-full bg-studio-900 hover:bg-studio-800 text-white font-medium rounded-xl text-sm sm:text-base shadow-sm">
+                        Masuk Ruang Kamera
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             STEP 2: CAMERA VIEWFINDER & LIVE CAPTURE
+             ================================================================== -->
+        <section id="view-step-2" class="hidden w-full max-w-4xl mx-auto flex flex-col items-center">
+            <!-- Progress Counter Kolase -->
+            <div class="w-full flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center space-x-2">
+                    <span id="capture-badge" class="px-2.5 py-1 rounded-full bg-studio-900 text-white text-xs font-medium tracking-wide">
+                        Foto 1 dari 1
+                    </span>
+                    <span id="camera-resolution-label" class="text-[11px] text-studio-400 font-mono hidden sm:inline">
+                        Resolusi: Menghubungkan...
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <!-- Switch Camera Front/Back -->
+                    <button id="btn-switch-camera" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-medium text-studio-700 flex items-center shadow-xs">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Balik Kamera
+                    </button>
+                </div>
+            </div>
+
+            <!-- Viewport Container Kamera -->
+            <div id="viewfinder-wrapper" class="video-viewport w-full rounded-2xl border border-studio-800 shadow-xl overflow-hidden aspect-[4/3] max-h-[68vh] relative bg-black">
+                <!-- Video Element Real-Time WebRTC -->
+                <video id="camera-video" playsinline autoplay muted class="w-full h-full object-cover mirror-mode"></video>
+
+                <!-- Framing Guide Overlay (Rule of thirds) -->
+                <div class="framing-guide"></div>
+
+                <!-- Shutter Flash Effect -->
+                <div id="shutter-flash" class="shutter-flash"></div>
+
+                <!-- Visual Countdown Display -->
+                <div id="countdown-overlay" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-30">
+                    <span id="countdown-number" class="countdown-pulse text-white text-8xl sm:text-9xl font-bold tracking-tighter drop-shadow-md">
+                        3
+                    </span>
+                </div>
+            </div>
+
+            <!-- Bottom Camera Controls -->
+            <div class="w-full flex items-center justify-between mt-5 px-4 max-w-md">
+                <button id="btn-back-to-setup" class="text-xs font-medium text-studio-500 hover:text-studio-900 transition flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Kembali
+                </button>
+
+                <!-- Big Touch Shutter Trigger Button -->
+                <button id="btn-trigger-shutter" class="w-20 h-20 rounded-full border-4 border-studio-900 bg-white p-1.5 shadow-lg active:scale-90 transition touch-manipulation flex items-center justify-center">
+                    <div class="w-full h-full rounded-full bg-studio-900"></div>
+                </button>
+
+                <div class="w-16 text-right">
+                    <span id="timer-display-badge" class="text-xs font-mono font-medium text-studio-500 bg-studio-100 px-2 py-1 rounded-md">
+                        3s
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             STEP 3: STUDIO EDITOR (Filter, Frame, Custom Watermark)
+             ================================================================== -->
+        <section id="view-step-3" class="hidden w-full max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left: Live Composite Canvas Preview -->
+                <div class="lg:col-span-7 flex flex-col items-center">
+                    <div class="w-full bg-white p-4 sm:p-6 rounded-2xl border border-studio-200 shadow-sm flex items-center justify-center min-h-[380px] max-h-[70vh]">
+                        <canvas id="composite-canvas" class="max-w-full max-h-[62vh] object-contain rounded-lg shadow-sm border border-studio-100"></canvas>
+                    </div>
+                    
+                    <div class="flex items-center justify-between w-full mt-3 px-1">
+                        <button id="btn-retake" class="text-xs font-medium text-studio-500 hover:text-studio-900 transition flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Foto Ulang (Retake)
+                        </button>
+                        <span class="text-[11px] text-studio-400">Komposisi Siap Cetak (300 DPI)</span>
+                    </div>
+                </div>
+
+                <!-- Right: Customization Controls Panel -->
+                <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-studio-200 shadow-sm space-y-5">
+                    <div>
+                        <h3 class="text-base font-bold text-studio-900">Kustomisasi Foto</h3>
+                        <p class="text-xs text-studio-500 mt-0.5">Pilih filter studio visual dan warna bingkai favorit Anda.</p>
+                    </div>
+
+                    <!-- 1. Pilihan Visual Filter -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2">
+                            Pilihan Visual Filter
+                        </label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" data-filter="normal" class="filter-choice choice-card active p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Normal</span>
+                                <span class="text-[10px] opacity-75">Clean HD</span>
+                            </button>
+                            <button type="button" data-filter="smooth_skin" class="filter-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Smooth Skin</span>
+                                <span class="text-[10px] opacity-75">Beauty Soft</span>
+                            </button>
+                            <button type="button" data-filter="vintage" class="filter-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Vintage</span>
+                                <span class="text-[10px] opacity-75">Warm Retro</span>
+                            </button>
+                            <button type="button" data-filter="grayscale" class="filter-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Monochrome</span>
+                                <span class="text-[10px] opacity-75">B&W Classic</span>
+                            </button>
+                            <button type="button" data-filter="sepia" class="filter-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Sepia</span>
+                                <span class="text-[10px] opacity-75">Bronze Tone</span>
+                            </button>
+                            <button type="button" data-filter="cyberpunk" class="filter-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Contrast</span>
+                                <span class="text-[10px] opacity-75">Punchy Deep</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Pilihan Warna Bingkai (Frame Theme) -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2">
+                            Warna Bingkai (Studio Frame)
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            <button type="button" data-theme="white" class="theme-choice swatch-btn active bg-white border-studio-300" title="Studio White"></button>
+                            <button type="button" data-theme="black" class="theme-choice swatch-btn bg-studio-900" title="Matte Obsidian"></button>
+                            <button type="button" data-theme="latte" class="theme-choice swatch-btn bg-[#F5F0EA] border-stone-300" title="Warm Latte"></button>
+                            <button type="button" data-theme="cream" class="theme-choice swatch-btn bg-[#FFFDF7] border-amber-200" title="Vintage Cream"></button>
+                            <button type="button" data-theme="sage"  class="theme-choice swatch-btn bg-[#E2E8E2] border-green-200" title="Soft Sage"></button>
+                            <button type="button" data-theme="blush" class="theme-choice swatch-btn bg-[#F8ECEC] border-rose-200" title="Pastel Blush"></button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Teks Watermark & Caption Kustom -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-1.5">
+                            Teks Watermark Studio
+                        </label>
+                        <input type="text" id="input-custom-text" value="QXUAN PHOTOBOOTH" maxlength="28" 
+                               class="w-full px-3 py-2 rounded-xl border border-studio-200 text-xs sm:text-sm font-medium focus:outline-none focus:border-studio-900 transition">
+                        <p class="text-[10px] text-studio-400 mt-1">Dicetak elegan di bagian bawah bingkai.</p>
+                    </div>
+
+                    <!-- 4. Gaya Sudut Bingkai -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-1.5">
+                            Gaya Sudut Foto
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" data-framestyle="solid" class="framestyle-choice choice-card active p-2 rounded-xl text-center text-xs font-semibold">
+                                Siku Tajam (Classic)
+                            </button>
+                            <button type="button" data-framestyle="rounded" class="framestyle-choice choice-card p-2 rounded-xl text-center text-xs font-semibold">
+                                Sudut Melengkung (Rounded)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Lanjut ke Pembayaran -->
+                    <div class="pt-2">
+                        <button id="btn-proceed-payment" class="btn-touch w-full bg-studio-900 hover:bg-studio-800 text-white font-medium rounded-xl text-sm shadow-sm">
+                            Lanjut ke Pembayaran QRIS →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             STEP 4: MIDTRANS DYNAMIC QRIS GATE
+             ================================================================== -->
+        <section id="view-step-4" class="hidden w-full max-w-lg mx-auto">
+            <div class="bg-white rounded-2xl border border-studio-200 p-6 sm:p-8 shadow-sm text-center space-y-6">
+                <!-- Header Tagihan -->
+                <div>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                        Midtrans Dynamic QRIS
+                    </span>
+                    <h3 class="text-xl font-bold tracking-tight text-studio-900 mt-3">Pembayaran Sesi Foto</h3>
+                    <p class="text-xs text-studio-500 mt-0.5">Scan kode QRIS di bawah menggunakan GoPay, BCA, OVO, ShopeePay, atau Bank apa saja.</p>
+                </div>
+
+                <!-- Nominal Harga -->
+                <div class="bg-studio-50 py-3.5 px-4 rounded-xl border border-studio-100 flex items-center justify-between">
+                    <span class="text-xs text-studio-500 font-medium">Total Biaya Sesi:</span>
+                    <span id="price-display" class="text-lg font-bold text-studio-900">Rp 25.000</span>
+                </div>
+
+                <!-- QRIS Code Container -->
+                <div class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border-2 border-dashed border-studio-200 relative min-h-[260px]">
+                    <div id="qris-image-container" class="flex items-center justify-center">
+                        <!-- Loading spinner sementara QR di-generate -->
+                        <div class="text-center p-6 space-y-2">
+                            <div class="w-8 h-8 border-2 border-studio-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                            <p class="text-xs text-studio-400">Menyiapkan kode QRIS...</p>
+                        </div>
+                    </div>
+                    <!-- National QRIS Branding Pill -->
+                    <div class="mt-3 flex items-center space-x-1.5 text-[11px] font-bold text-studio-600 uppercase tracking-widest">
+                        <span>QRIS</span>
+                        <span class="text-studio-300">•</span>
+                        <span class="text-studio-400 font-normal">GOPAY / BCA / ALL PAYMENT</span>
+                    </div>
+                </div>
+
+                <!-- Polling Status Pulse -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-center space-x-2 text-xs font-medium text-studio-600">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                        <span>Menunggu konfirmasi pembayaran...</span>
+                    </div>
+                    <p class="text-[10px] text-studio-400">
+                        Order ID: <span id="display-order-id" class="font-mono">Menghubungkan...</span>
+                    </p>
+                </div>
+
+                <!-- Tombol Sandbox / Local Demo Simulation -->
+                <div class="pt-2 border-t border-studio-100">
+                    <button id="btn-simulate-payment" class="w-full py-2.5 px-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/70 hover:bg-amber-100/80 text-amber-800 text-xs font-medium transition flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Simulasikan Pembayaran Sukses (Dev / Sandbox)
+                    </button>
+                    <p class="text-[10px] text-studio-400 mt-1">Gunakan tombol ini saat pengujian lokal jika webhook belum dipasang public tunnel.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             STEP 5: UNLOCKED EXPORT, DOWNLOAD & PRINT
+             ================================================================== -->
+        <section id="view-step-5" class="hidden w-full max-w-3xl mx-auto">
+            <div class="bg-white rounded-2xl border border-studio-200 p-6 sm:p-8 shadow-sm space-y-6">
+                <!-- Success Header -->
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold tracking-tight text-studio-900">Pembayaran Berhasil!</h3>
+                    <p class="text-xs sm:text-sm text-studio-500 mt-1">
+                        Sesi foto Anda telah selesai. Anda dapat langsung mencetak foto atau menyimpannya ke ponsel.
+                    </p>
+                </div>
+
+                <!-- Action Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- Card A: Cetak Fisik (window.print) -->
+                    <div class="p-5 rounded-2xl border border-studio-200 bg-studio-50/50 flex flex-col justify-between">
+                        <div>
+                            <div class="w-9 h-9 rounded-xl bg-studio-900 text-white flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            </div>
+                            <h4 class="text-sm font-bold text-studio-900">Cetak Kertas Foto</h4>
+                            <p class="text-xs text-studio-500 mt-1">Disesuaikan otomatis untuk kertas foto format 4R (4x6 in) atau Photostrip (2x6 in).</p>
+                        </div>
+                        <button id="btn-print-action" class="btn-touch w-full mt-5 bg-studio-900 hover:bg-studio-800 text-white text-xs font-semibold rounded-xl shadow-xs">
+                            Mulai Cetak Sekarang
+                        </button>
+                    </div>
+
+                    <!-- Card B: Download File HD Langsung -->
+                    <div class="p-5 rounded-2xl border border-studio-200 bg-studio-50/50 flex flex-col justify-between">
+                        <div>
+                            <div class="w-9 h-9 rounded-xl bg-studio-900 text-white flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            </div>
+                            <h4 class="text-sm font-bold text-studio-900">Simpan File HD</h4>
+                            <p class="text-xs text-studio-500 mt-1">Pilih format unduhan beresolusi tinggi untuk disimpan ke komputer/perangkat.</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 mt-5">
+                            <button id="btn-download-png" class="py-2.5 px-2 bg-white border border-studio-200 hover:border-studio-900 rounded-xl text-[11px] font-bold text-studio-900 transition">
+                                PNG (HD)
+                            </button>
+                            <button id="btn-download-jpg" class="py-2.5 px-2 bg-white border border-studio-200 hover:border-studio-900 rounded-xl text-[11px] font-bold text-studio-900 transition">
+                                JPG
+                            </button>
+                            <button id="btn-download-webp" class="py-2.5 px-2 bg-white border border-studio-200 hover:border-studio-900 rounded-xl text-[11px] font-bold text-studio-900 transition">
+                                WEBP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card C: Scan QR untuk Download di HP (Temporary Cloud Storage dengan TTL 24 Jam) -->
+                <div class="p-5 rounded-2xl border border-studio-200 bg-white flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <div id="mobile-download-qr" class="flex-shrink-0 w-32 h-32 bg-studio-100 rounded-xl flex items-center justify-center border border-studio-200 overflow-hidden">
+                        <span class="text-[10px] text-studio-400 text-center px-2">Membuat tautan unduh...</span>
+                    </div>
+                    <div class="text-center sm:text-left flex-1">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                            Mobile Download
+                        </span>
+                        <h4 class="text-sm font-bold text-studio-900 mt-1">Scan QR dengan Kamera HP</h4>
+                        <p class="text-xs text-studio-500 mt-1 leading-relaxed">
+                            Buka kamera ponsel Anda dan arahkan ke kode QR ini untuk langsung membuka dan mengunduh foto kolase asli.
+                        </p>
+                        <p class="text-[10px] text-studio-400 mt-2 flex items-center justify-center sm:justify-start">
+                            <svg class="w-3.5 h-3.5 mr-1 text-studio-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Kebijakan Privasi: File otomatis dihapus permanen dalam 24 jam.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Reset Sesi Baru -->
+                <div class="pt-4 text-center">
+                    <button id="btn-new-session" class="btn-touch px-6 py-2.5 rounded-xl border border-studio-200 hover:border-studio-900 text-xs font-semibold text-studio-700 transition">
+                        Selesaikan & Mulai Sesi Baru
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================================
+         DEDICATED PRINT CONTAINER (Digunakan oleh window.print())
+         ====================================================================== -->
+    <div id="print-target-wrapper" style="display: none;">
+        <img id="print-image" src="" alt="Qxuan Photobooth Print Ready">
+    </div>
+
+    <!-- ======================================================================
+         SCRIPTS ARCHITECTURE
+         ====================================================================== -->
+    <script src="assets/js/qrcode.min.js"></script>
+    <script src="assets/js/camera.js"></script>
+    <script src="assets/js/canvas-engine.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
+

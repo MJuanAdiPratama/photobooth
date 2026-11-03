@@ -1,0 +1,233 @@
+/* ==========================================================================
+   Qxuan Photobooth - Modern Minimalist Stylesheet
+   Clean, Editorial, Studio-grade UI/UX (No AI-look neon gradients)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  --studio-bg: #FAFAFA;
+  --studio-card: #FFFFFF;
+  --studio-border: #E4E4E7;
+  --studio-border-focus: #18181B;
+  --studio-text-main: #18181B;
+  --studio-text-muted: #71717A;
+  --studio-accent: #18181B;
+  --studio-accent-hover: #27272A;
+}
+
+/* Base Reset & Smooth Typography */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--studio-bg);
+  color: var(--studio-text-main);
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Kiosk Fullscreen Mode Styling */
+:fullscreen body, :-webkit-full-screen body {
+  background-color: #121214;
+}
+
+/* Viewfinder & Video Styling */
+.video-viewport {
+  position: relative;
+  overflow: hidden;
+  background-color: #09090B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mirror-mode {
+  transform: scaleX(-1);
+}
+
+/* Framing Guide Grid Overlay (Studio Composition) */
+.framing-guide {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.framing-guide::before,
+.framing-guide::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Rule of Thirds subtle lines */
+.framing-guide::before {
+  top: 33.333%;
+  bottom: 33.333%;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.framing-guide::after {
+  left: 33.333%;
+  right: 33.333%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed rgba(255, 255, 255, 0.12);
+  border-right: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+/* Shutter Flash Animation */
+.shutter-flash {
+  position: absolute;
+  inset: 0;
+  background-color: #FFFFFF;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.flash-active {
+  animation: flashTrigger 450ms cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes flashTrigger {
+  0% { opacity: 0.95; }
+  100% { opacity: 0; }
+}
+
+/* Countdown Visual Animation */
+.countdown-pulse {
+  animation: scaleBounce 900ms cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+@keyframes scaleBounce {
+  0% { transform: scale(0.7); opacity: 0.2; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 0.9; }
+}
+
+/* Touch Friendly Large Buttons */
+.btn-touch {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  transition: all 180ms ease;
+}
+
+.btn-touch:active {
+  transform: scale(0.97);
+}
+
+/* Minimalist Selector Cards */
+.choice-card {
+  border: 1.5px solid var(--studio-border);
+  background-color: #FFFFFF;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.choice-card:hover {
+  border-color: #A1A1AA;
+}
+
+.choice-card.active {
+  border-color: var(--studio-border-focus);
+  background-color: #18181B;
+  color: #FFFFFF;
+}
+
+.choice-card.active svg {
+  stroke: #FFFFFF;
+}
+
+/* Theme Swatch Selector */
+.swatch-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  transition: all 150ms ease;
+  position: relative;
+}
+
+.swatch-btn.active {
+  border-color: #18181B;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.15);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
+}
+
+/* ==========================================================================
+   PRINT PROTOCOL (Window.print() & @page rules)
+   Sesuai spesifikasi untuk kertas foto 4R (4x6 in) atau strip (2x6 in)
+   ========================================================================== */
+@page {
+  size: 4in 6in;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Sembunyikan seluruh UI Photobooth saat mencetak */
+  body > * {
+    display: none !important;
+  }
+
+  /* Tampilkan hanya kontainer print */
+  #print-target-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #FFFFFF !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  #print-target-wrapper img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+

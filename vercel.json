@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/create_payment.php", "destination": "/api/create_payment" },
+    { "source": "/api/check_status.php", "destination": "/api/check_status" },
+    { "source": "/api/mock_pay.php", "destination": "/api/mock_pay" },
+    { "source": "/api/webhook_callback.php", "destination": "/api/webhook_callback" },
+    { "source": "/api/upload_temp.php", "destination": "/api/upload_temp" },
+    { "source": "/api/cron_cleanup.php", "destination": "/api/cron_cleanup" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron_cleanup",
+      "schedule": "0 */2 * * *"
+    }
+  ]
+}
+
