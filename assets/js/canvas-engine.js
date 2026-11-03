@@ -48,9 +48,15 @@ class CanvasEngine {
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         this.applyAutoContrast(imgData);
-        const sharpenedData = this.applySharpenKernel(imgData, canvas.width, canvas.height, 0.35);
 
-        ctx.putImageData(sharpenedData, 0, 0);
+        // Penajaman cerdas: Jalankan kernel konvolusi cepat jika piksel di bawah batas aman agar smartphone tetap gesit
+        if (canvas.width * canvas.height <= 2500000) {
+            const sharpenedData = this.applySharpenKernel(imgData, canvas.width, canvas.height, 0.25);
+            ctx.putImageData(sharpenedData, 0, 0);
+        } else {
+            ctx.putImageData(imgData, 0, 0);
+        }
+
         return canvas;
     }
 
@@ -59,13 +65,15 @@ class CanvasEngine {
         const totalPixels = d.length / 4;
         const hist = new Uint32Array(256);
 
-        for (let i = 0; i < d.length; i += 4) {
-            const lum = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+        // Sampling cepat setiap 4 piksel untuk mempercepat perhitungan histogram tanpa kehilangan akurasi
+        for (let i = 0; i < d.length; i += 16) {
+            const lum = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
             hist[lum]++;
         }
 
-        const lowThreshold = totalPixels * 0.01;
-        const highThreshold = totalPixels * 0.99;
+        const sampledPixels = Math.floor(totalPixels / 4);
+        const lowThreshold = sampledPixels * 0.01;
+        const highThreshold = sampledPixels * 0.99;
 
         let count = 0;
         let minLum = 0;
@@ -79,10 +87,10 @@ class CanvasEngine {
         count = 0;
         for (let i = 255; i >= 0; i--) {
             count += hist[i];
-            if (count >= (totalPixels - highThreshold)) { maxLum = i; break; }
+            if (count >= (sampledPixels - highThreshold)) { maxLum = i; break; }
         }
 
-        if (maxLum <= minLum) return;
+        if (maxLum <= minLum || (minLum < 5 && maxLum > 250)) return;
 
         const range = maxLum - minLum;
         const scale = 255 / range;

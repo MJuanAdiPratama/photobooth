@@ -150,10 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (AudioContextClass) audioCtx = new AudioContextClass();
         }
         if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
+            audioCtx.resume().catch(() => {});
         }
         return audioCtx;
     }
+
+    // Buka kunci Web Audio otomatis pada sentuhan pertama di smartphone
+    window.addEventListener('touchstart', () => { getAudioContext(); }, { once: true, passive: true });
+    window.addEventListener('click', () => { getAudioContext(); }, { once: true, passive: true });
 
     function playBeep(pitch = 880, duration = 0.08) {
         try {
@@ -208,6 +212,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 views[key].classList.add('hidden');
             }
         });
+
+        // Update indikator stepper untuk mobile
+        const mobileBadge = document.getElementById('mobile-step-badge');
+        if (mobileBadge) {
+            const stepLabels = ['', '1/5: Mode', '2/5: Kamera', '3/5: Editor', '4/5: Bayar', '5/5: Selesai'];
+            mobileBadge.textContent = stepLabels[stepNumber] || `Langkah ${stepNumber}/5`;
+        }
 
         Object.keys(stepDots).forEach(numStr => {
             const num = parseInt(numStr);
@@ -333,8 +344,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btn-back-to-setup').addEventListener('click', () => {
-        cameraEngine.stopCamera();
-        setStep(1);
+        if (state.capturedFrames.length > 0) {
+            showModal({
+                title: 'Keluar dari Kamera?',
+                message: 'Jepretan foto yang sedang berjalan akan dibatalkan dan Anda akan kembali ke menu pengaturan.',
+                type: 'warning',
+                showCancel: true,
+                confirmText: 'Ya, Keluar',
+                cancelText: 'Batal',
+                onConfirm: () => {
+                    cameraEngine.stopCamera();
+                    state.capturedFrames = [];
+                    state.currentCaptureIdx = 0;
+                    setStep(1);
+                }
+            });
+        } else {
+            cameraEngine.stopCamera();
+            setStep(1);
+        }
     });
 
     // Toggle Orientasi Cepat di Layar Kamera (Step 2)
@@ -384,10 +412,16 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownOverlay.classList.remove('hidden');
             for (let sec = timerDuration; sec > 0; sec--) {
                 countdownNumber.textContent = sec;
-                playBeep(sec === 1 ? 1100 : 700, 0.1);
+                // Picu animasi scale/opacity yang mulus per detik (GPU-accelerated)
+                countdownNumber.classList.remove('countdown-tick');
+                void countdownNumber.offsetWidth;
+                countdownNumber.classList.add('countdown-tick');
+
+                playBeep(sec === 1 ? 1200 : 800, 0.08);
                 await sleep(1000);
             }
             countdownOverlay.classList.add('hidden');
+            countdownNumber.classList.remove('countdown-tick');
         }
 
         shutterFlash.classList.add('flash-active');
@@ -413,6 +447,11 @@ document.addEventListener('DOMContentLoaded', () => {
             state.isCapturingSession = false;
             btnTriggerShutter.disabled = false;
             
+            // Bersihkan cache filter untuk sesi baru
+            cachedFilterKey = null;
+            cachedFilteredFrames = [];
+            cachedFramesCount = 0;
+
             setStep(3);
             renderStudioComposite();
         }
@@ -425,17 +464,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------
     // 8. STEP 3: STUDIO EDITOR & CUSTOMIZATION
     // -------------------------------------------------------------
+    let cachedFilteredFrames = [];
+    let cachedFilterKey = null;
+    let cachedFramesCount = 0;
+
     function renderStudioComposite() {
         if (!state.capturedFrames.length) return;
 
-        // Terapkan filter visual transformatif terpilih
-        const filteredFrames = state.capturedFrames.map(frame => {
-            return canvasEngine.applyFilter(frame, state.selectedFilter);
-        });
+        // Caching pintar: Hindari hitungan piksel ulang saat berganti warna bingkai atau gaya sudut
+        if (cachedFilterKey !== state.selectedFilter || cachedFramesCount !== state.capturedFrames.length) {
+            cachedFilteredFrames = state.capturedFrames.map(frame => {
+                return canvasEngine.applyFilter(frame, state.selectedFilter);
+            });
+            cachedFilterKey = state.selectedFilter;
+            cachedFramesCount = state.capturedFrames.length;
+        }
 
         // Buat kolase HD dengan tema bingkai & gaya sudut terpilih
         const outCanvas = canvasEngine.composeCollage({
-            photoCanvases: filteredFrames,
+            photoCanvases: cachedFilteredFrames,
             layoutMode: state.layoutMode,
             themeKey: state.selectedTheme,
             frameStyle: state.selectedFrameStyle,
@@ -484,13 +531,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Foto Ulang (Retake dengan Popup Modal)
     document.getElementById('btn-retake').addEventListener('click', () => {
         showModal({
-            title: 'Ulangi Sesi Foto?',
-            message: 'Seluruh jepretan foto di sesi ini akan dihapus dan kamera akan dinyalakan kembali dari foto pertama.',
+            title: 'Ulangi Foto?',
+            message: 'Seluruh foto di sesi ini akan dihapus dan kamera akan dinyalakan kembali dari foto pertama.',
             type: 'warning',
             showCancel: true,
-            confirmText: 'Ya, Ulangi Foto',
+            confirmText: 'Ya, Ulangi',
             cancelText: 'Batal',
             onConfirm: async () => {
+                cachedFilterKey = null;
+                cachedFilteredFrames = [];
+                cachedFramesCount = 0;
                 setStep(2);
                 state.capturedFrames = [];
                 state.currentCaptureIdx = 0;
@@ -745,15 +795,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
     }
 
-    // Reset Selesai Sesi Baru (Revisi 1: Muncul Popup Modal Elegan)
+    // Reset Selesai Sesi Baru (Popup Konfirmasi Elegan)
     document.getElementById('btn-new-session').addEventListener('click', () => {
         showModal({
-            title: 'Selesaikan & Mulai Sesi Baru?',
-            message: 'Sesi foto ini akan ditutup dan bilik foto akan direset untuk pelanggan berikutnya. Pastikan Anda sudah mengunduh atau mencetak foto Anda.',
+            title: 'Keluar dari Sesi Foto?',
+            message: 'Sesi foto ini akan ditutup dan bilik foto akan direset ke awal. Pastikan Anda telah mengunduh atau mencetak foto Anda.',
             type: 'confirm',
             showCancel: true,
-            confirmText: 'Ya, Selesaikan',
-            cancelText: 'Kembali',
+            confirmText: 'Ya, Keluar',
+            cancelText: 'Batal',
             onConfirm: () => {
                 window.location.reload();
             }

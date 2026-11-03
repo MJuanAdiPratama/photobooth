@@ -37,21 +37,28 @@
     <!-- ======================================================================
          TOP BAR: Minimalist Branding & Stepper Navigation
          ====================================================================== -->
-    <header class="w-full bg-white/90 backdrop-blur-md border-b border-studio-200 sticky top-0 z-40 px-4 py-3 sm:px-6">
+    <header class="w-full bg-white/95 backdrop-blur-md border-b border-studio-200 sticky top-0 z-40 px-3.5 py-2.5 sm:px-6 sm:py-3">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <!-- Brand Logo -->
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-lg bg-studio-900 text-white flex items-center justify-center font-bold text-sm tracking-wider">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-lg bg-studio-900 text-white flex items-center justify-center font-bold text-sm tracking-wider shadow-2xs">
                     Q
                 </div>
                 <div>
-                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-studio-900 leading-none">
+                    <h1 class="text-sm sm:text-lg font-bold tracking-tight text-studio-900 leading-none">
                         QXUAN <span class="font-normal text-studio-500">PHOTOBOOTH</span>
                     </h1>
-                    <p class="text-[10px] sm:text-xs text-studio-400 font-medium tracking-wider uppercase mt-0.5">
+                    <p class="text-[9px] sm:text-xs text-studio-400 font-medium tracking-wider uppercase mt-0.5">
                         Clean Studio Experience
                     </p>
                 </div>
+            </div>
+
+            <!-- Mobile Step Indicator Badge -->
+            <div class="md:hidden">
+                <span id="mobile-step-badge" class="px-2.5 py-1 rounded-full bg-studio-100 text-studio-700 text-[11px] font-semibold tracking-wide">
+                    Langkah 1/5
+                </span>
             </div>
 
             <!-- Stepper Progress Dots (Desktop/Tablet) -->
@@ -67,10 +74,10 @@
                 <span id="step-dot-5" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">5. Cetak</span>
             </div>
 
-            <!-- Header Controls: Fullscreen -->
-            <div class="flex items-center space-x-2">
+            <!-- Header Controls: Fullscreen (Hidden on small mobile) -->
+            <div class="hidden sm:flex items-center space-x-2">
                 <button id="btn-fullscreen" title="Mode Layar Penuh" class="p-2 rounded-lg border border-studio-200 hover:bg-studio-100 text-studio-700 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
             </div>
         </div>
@@ -191,9 +198,9 @@
 
                 <!-- Tombol Action Mulai -->
                 <div class="pt-2">
-                    <button id="btn-start-session" class="btn-touch w-full bg-studio-900 hover:bg-studio-800 text-white font-medium rounded-xl text-sm sm:text-base shadow-sm">
-                        Masuk Ruang Kamera
-                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <button id="btn-start-session" class="btn-touch w-full py-3.5 bg-studio-900 hover:bg-studio-800 text-white font-semibold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2">
+                        <span>Mulai Berfoto</span>
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                 </div>
             </div>
@@ -204,25 +211,25 @@
              ================================================================== -->
         <section id="view-step-2" class="hidden w-full max-w-4xl mx-auto flex flex-col items-center">
             <!-- Progress Counter Kolase -->
-            <div class="w-full flex items-center justify-between mb-3 px-2">
+            <div class="w-full flex items-center justify-between mb-2.5 px-1">
                 <div class="flex items-center space-x-2">
-                    <span id="capture-badge" class="px-2.5 py-1 rounded-full bg-studio-900 text-white text-xs font-medium tracking-wide">
+                    <span id="capture-badge" class="px-2.5 py-1 rounded-full bg-studio-900 text-white text-xs font-semibold tracking-wide shadow-2xs">
                         Foto 1 dari 1
                     </span>
                     <span id="camera-resolution-label" class="text-[11px] text-studio-400 font-mono hidden sm:inline">
                         Resolusi: Menghubungkan...
                     </span>
                 </div>
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1.5">
                     <!-- Toggle Orientation Button (Portrait / Landscape) -->
-                    <button id="btn-toggle-orientation" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-medium text-studio-700 flex items-center shadow-xs" title="Ganti Orientasi (Potret / Lanskap)">
-                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    <button id="btn-toggle-orientation" class="px-2.5 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-semibold text-studio-700 flex items-center shadow-xs" title="Ganti Orientasi (Potret / Lanskap)">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                         <span id="orientation-toggle-label">📱 Potret</span>
                     </button>
                     <!-- Switch Camera Front/Back -->
-                    <button id="btn-switch-camera" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-medium text-studio-700 flex items-center shadow-xs">
-                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Balik Kamera
+                    <button id="btn-switch-camera" class="px-2.5 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-semibold text-studio-700 flex items-center shadow-xs">
+                        <svg class="w-3.5 h-3.5 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span class="hidden sm:inline">Balik Kamera</span>
                     </button>
                 </div>
             </div>
@@ -238,28 +245,29 @@
                 <!-- Shutter Flash Effect -->
                 <div id="shutter-flash" class="shutter-flash"></div>
 
-                <!-- Visual Countdown Display -->
-                <div id="countdown-overlay" class="hidden absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-30">
-                    <span id="countdown-number" class="countdown-pulse text-white text-8xl sm:text-9xl font-bold tracking-tighter drop-shadow-md">
+                <!-- Visual Countdown Display (GPU-accelerated) -->
+                <div id="countdown-overlay" class="hidden absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center z-30 select-none">
+                    <span id="countdown-number" class="countdown-number text-white text-8xl sm:text-9xl font-bold tracking-tighter drop-shadow-lg select-none">
                         3
                     </span>
                 </div>
             </div>
 
             <!-- Bottom Camera Controls -->
-            <div class="w-full flex items-center justify-between mt-5 px-4 max-w-md">
-                <button id="btn-back-to-setup" class="text-xs font-medium text-studio-500 hover:text-studio-900 transition flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    Kembali
+            <div class="w-full flex items-center justify-between mt-4 px-2 max-w-md">
+                <!-- Tombol Keluar dari Kamera -->
+                <button id="btn-back-to-setup" class="px-3.5 py-2 rounded-xl bg-studio-100 hover:bg-studio-200 text-xs font-semibold text-studio-700 transition flex items-center shadow-2xs" title="Keluar dari sesi kamera">
+                    <svg class="w-4 h-4 mr-1 text-studio-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>Keluar</span>
                 </button>
 
                 <!-- Big Touch Shutter Trigger Button -->
-                <button id="btn-trigger-shutter" class="w-20 h-20 rounded-full border-4 border-studio-900 bg-white p-1.5 shadow-lg active:scale-90 transition touch-manipulation flex items-center justify-center">
+                <button id="btn-trigger-shutter" class="w-18 h-18 sm:w-20 sm:h-20 rounded-full border-4 border-studio-900 bg-white p-1.5 shadow-lg active:scale-90 transition touch-manipulation flex items-center justify-center">
                     <div class="w-full h-full rounded-full bg-studio-900"></div>
                 </button>
 
                 <div class="w-16 text-right">
-                    <span id="timer-display-badge" class="text-xs font-mono font-medium text-studio-500 bg-studio-100 px-2 py-1 rounded-md">
+                    <span id="timer-display-badge" class="text-xs font-mono font-bold text-studio-700 bg-studio-100 px-2.5 py-1.5 rounded-lg border border-studio-200 shadow-2xs">
                         3s
                     </span>
                 </div>
@@ -279,9 +287,9 @@
                     </div>
                     
                     <div class="flex items-center justify-between w-full mt-3 px-1">
-                        <button id="btn-retake" class="text-xs font-medium text-studio-500 hover:text-studio-900 transition flex items-center">
-                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Foto Ulang (Retake)
+                        <button id="btn-retake" class="px-3 py-1.5 rounded-xl border border-studio-200 bg-white hover:bg-studio-100 text-xs font-semibold text-studio-700 transition flex items-center shadow-2xs">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-studio-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>Foto Ulang</span>
                         </button>
                         <span class="text-[11px] text-studio-400 font-mono">Format 300 DPI Ultra HD</span>
                     </div>
@@ -536,10 +544,11 @@
                     </div>
                 </div>
 
-                <!-- Reset Sesi Baru (Akan memicu Modal Popup Sesuai Revisi 1) -->
+                <!-- Reset Sesi Baru (Keluar & Reset Sesi) -->
                 <div class="pt-4 text-center">
-                    <button id="btn-new-session" class="btn-touch px-6 py-2.5 rounded-xl border border-studio-200 hover:border-studio-900 text-xs font-semibold text-studio-700 transition">
-                        Selesaikan & Mulai Sesi Baru
+                    <button id="btn-new-session" class="btn-touch w-full sm:w-auto px-6 py-3 rounded-xl border border-studio-200 hover:border-studio-900 bg-white hover:bg-studio-50 text-xs font-semibold text-studio-700 transition flex items-center justify-center space-x-2 mx-auto shadow-2xs">
+                        <svg class="w-4 h-4 text-studio-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <span>Keluar & Sesi Baru</span>
                     </button>
                 </div>
             </div>

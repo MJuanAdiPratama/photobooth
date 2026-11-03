@@ -29,13 +29,16 @@ class CameraManager {
             this.video.classList.remove('mirror-mode');
         }
 
-        // Constraints sesuai spesifikasi Qxuan Photobooth:
-        // Ideal 3840x2160 (4K UHD) dengan fallback otomatis oleh browser ke resolusi terbaik hardware
+        // Optimasi Perangkat: Gunakan Full HD (1080p) pada smartphone untuk performa 60fps yang ringan dan responsif
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        const idealWidth = isMobile ? 1920 : 3840;
+        const idealHeight = isMobile ? 1080 : 2160;
+
         const constraints = {
             audio: false,
             video: {
-                width: { ideal: 3840, max: 3840 },
-                height: { ideal: 2160, max: 2160 },
+                width: { ideal: idealWidth },
+                height: { ideal: idealHeight },
                 facingMode: { ideal: facingMode }
             }
         };
