@@ -1,100 +1,172 @@
-# 📸 Qxuan Photobooth (Supabase & Vercel Edition)
+# 📸 Qxuan Photobooth
 
-Aplikasi Web Photobooth Modern, Minimalis, dan Siap Pakai (*Production-Ready*) dengan arsitektur UI Studio Kiosk, Pemrosesan Gambar Canvas Beresolusi Tinggi (HD 300 DPI), Pembayaran Dinamis **Midtrans QRIS**, serta Backend Serverless **Supabase PostgreSQL & Storage** yang siap dideploy ke **Vercel**!
-
----
-
-## 🚀 Panduan Lengkap: Membuat Database di Supabase
-
-Ikuti langkah-langkah mudah berikut untuk menyiapkan Supabase dari nol:
-
-### Langkah 1: Buat Akun & Project Baru di Supabase
-1. Buka [https://supabase.com/](https://supabase.com/) dan klik **"Sign In"** atau **"Start your project"** (bisa login menggunakan akun GitHub).
-2. Di dashboard Supabase, klik tombol **"New project"**.
-3. Isi informasi project:
-   - **Name**: `Qxuan-Photobooth` (atau nama lain yang Anda inginkan).
-   - **Database Password**: Buat password yang kuat dan catat.
-   - **Region**: Pilih yang terdekat dengan Indonesia, misalnya **Singapore (ap-southeast-1)** agar respon cepat.
-4. Klik **"Create new project"** dan tunggu sekitar 1-2 menit hingga status database selesai dibuat.
+> **Modern, Minimalist & Production-Ready Self-Photo Studio Kiosk Web Application.**  
+> Dirancang dengan standar estetika studio bersih (*clean aesthetic*), pemrosesan grafis HTML5 Canvas beresolusi tinggi (HD 300 DPI), gerbang pembayaran otomatis **Midtrans Dynamic QRIS**, serta penyimpanan awan sementara berbasis **Supabase (PostgreSQL & Storage)** dengan protokol privasi **Auto-Delete 24 Jam**.
 
 ---
 
-### Langkah 2: Jalankan Skrip SQL Tabel & Storage
-1. Di dashboard Supabase project Anda, buka menu **SQL Editor** pada navigasi sebelah kiri (ikon terminal/buku SQL `>_`).
-2. Klik tombol **"+ New query"**.
-3. Buka berkas [`supabase_schema.sql`](file:///c:/Users/muham/Documents/Photobooth/supabase_schema.sql) di proyek ini, **salin seluruh isinya**, lalu tempel (*paste*) ke dalam kotak SQL Editor Supabase.
-4. Klik tombol **"Run"** (atau tekan `Ctrl + Enter`).
-5. Akan muncul pesan sukses: `Success. No rows returned`.
+## 🌟 Gambaran Sistem (System Overview)
 
-> Skrip SQL ini otomatis membuat:
-> 1. Tabel `transactions`: Menyimpan metadata transaksi (`order_id`, `amount`, `status`, `qris_url`, `photo_url`, `photo_metadata`).
-> 2. Tabel `system_settings`: Menyimpan tarif sesi photobooth.
-> 3. Bucket Storage `photobooth-temp`: Tempat penyimpanan file foto sementara pelanggan.
-> 4. Row Level Security (RLS) & Policies: Keamanan akses membaca dan menulis data.
-> 5. Stored Procedure `delete_expired_photobooth_photos()`: Fungsi pemusnahan otomatis foto yang berumur lebih dari 24 jam demi privasi.
+**Qxuan Photobooth** adalah platform photobooth berbasis web modern yang dapat dioperasikan pada perangkat **Smartphone (Mobile)**, **Tablet/iPad**, maupun perangkat layar besar **Kiosk / Laptop Studio (Fullscreen Mode)**. 
+
+Aplikasi dibangun menggunakan arsitektur *Zero Heavy Framework* (Vanilla JS + HTML5 Canvas API + Tailwind CSS) untuk memastikan performa yang sangat ringan, waktu pemuatan instan (*zero lag*), serta kompatibilitas maksimal pada berbagai kamera perangkat.
 
 ---
 
-### Langkah 3: Ambil Kredensial API Supabase
-1. Di dashboard Supabase, klik menu **Project Settings** (ikon roda gigi di kiri bawah).
-2. Pilih tab **"Data API"** (atau **API** di versi sebelumnya).
-3. Salin 3 nilai penting berikut:
-   - **Project URL**: Contoh `https://xyzcompany.supabase.co`
-   - **anon / public key**: Kunci `anon` publik
-   - **service_role key**: Kunci rahasia `service_role` (klik tombol *Reveal* untuk melihatnya). Kunci ini digunakan oleh backend Vercel.
+## 🔄 Alur Sistem (User Journey / Stepper Workflow)
 
----
+Sistem bekerja secara terstruktur dalam 4 tahapan (*stepper*) yang intuitif:
 
-## ☁️ Panduan Deploy ke Vercel
-
-Karena aplikasi ini sudah menggunakan arsitektur **Vercel Serverless Functions** (`/api/*.js`), Anda dapat men-deploy-nya ke Vercel secara gratis dan instan:
-
-### Cara 1: Deploy via GitHub (Paling Mudah)
-1. Unggah (*push*) folder proyek ini ke repositori GitHub Anda.
-2. Buka [https://vercel.com/](https://vercel.com/) dan login.
-3. Klik **"Add New..." > "Project"**, lalu pilih repositori GitHub Photobooth Anda.
-4. Di bagian **Environment Variables**, tambahkan variabel-variabel berikut:
-
-| Key | Value Contoh | Deskripsi |
-| :--- | :--- | :--- |
-| `SUPABASE_URL` | `https://xxxx.supabase.co` | URL Project Supabase Anda |
-| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOi...` | Kunci `service_role` Supabase Anda |
-| `SUPABASE_BUCKET` | `photobooth-temp` | Nama Bucket Storage foto sementara |
-| `MIDTRANS_SERVER_KEY` | `SB-Mid-server-XXXXX` | Server Key dari Midtrans Dashboard |
-| `MIDTRANS_CLIENT_KEY` | `SB-Mid-client-XXXXX` | Client Key dari Midtrans Dashboard |
-| `MIDTRANS_IS_PRODUCTION` | `false` | `false` untuk Sandbox, `true` jika Live |
-
-5. Klik **"Deploy"**. Dalam hitungan detik website Qxuan Photobooth Anda akan langsung aktif dengan tautan publik seperti `https://qxuan-photobooth.vercel.app`!
-
----
-
-### Cara 2: Deploy Langsung via Vercel CLI
-Jika Anda memiliki Vercel CLI di komputer:
-```bash
-npm install -g vercel
-vercel
+```mermaid
+flowchart LR
+    A["1. Sesi Kamera<br/>(Capture Session)"] --> B["2. Studio Editor<br/>(Filter & Custom Border)"]
+    B --> C["3. Pembayaran QRIS<br/>(Midtrans Payment Gate)"]
+    C --> D["4. Ekspor & Cetak<br/>(Download HD & Print)"]
 ```
-Ikuti instruksi di terminal, lalu masukkan variabel environment di dashboard Vercel.
+
+### 1. Tahap Pengambilan Foto (Capture Session)
+- Pengguna memilih rasio foto (*Aspect Ratio*) dan tata letak kolase (*Single Frame* atau *Collage Grid*).
+- Menentukan durasi penghitung waktu mundur (*Timer Countdown*).
+- Menekan tombol shutter; WebRTC kamera menangkap stream video berkualitas maksimal hingga 4K.
+- Sistem menerapkan pra-pemrosesan otomatis (*sharpening kernel & dynamic auto-contrast*) agar hasil tangkapan kamera ponsel/laptop tetap tajam dan jernih.
+
+### 2. Tahap Kustomisasi & Editor Studio (Live Canvas Rendering)
+- Pengguna mempratinjau hasil foto secara *real-time* di atas kanvas HTML5.
+- Memilih filter visual studio, warna bingkai, dan variasi gaya sudut foto.
+- Menyesuaikan format tata letak sebelum melanjutkan ke proses pembayaran.
+
+### 3. Tahap Pembayaran Digital (Midtrans QRIS Payment Gate)
+- Backend Vercel Serverless Function secara otomatis membuat transaksi ke Midtrans API dan menghasilkan **Dynamic QRIS**.
+- Kode QRIS ditampilkan di layar booth.
+- Tombol cetak dan unduh file HD berada dalam kondisi **TERKUNCI** (*secure disabled*).
+- Sistem memantau status pembayaran via *Polling API* atau *Webhook Callback*. Begitu pembayaran berstatus `settlement`, gerbang ekspor langsung terbuka secara otomatis.
+
+### 4. Tahap Ekspor, Unduh & Cetak (Output Delivery)
+- Kanvas merender ulang foto ke resolusi cetak penuh (*High-Definition 300 DPI*).
+- File foto HD diunggah ke *temporary cloud storage* (Supabase Storage) yang menghasilkan QR Code khusus untuk di-scan dan diunduh ke smartphone pelanggan.
+- Fitur cetak langsung (*Direct Print*) yang telah dikalibrasi sesuai ukuran kertas foto standar (4R dan strip foto 2x6).
+- Sesi selesai dan siap menyambut pelanggan berikutnya.
 
 ---
 
-## 💻 Menjalankan di Komputer Lokal (Testing)
+## ✨ Fitur-Fitur Utama (Core Features)
 
-Sebelum dihosting ke Vercel, Anda juga bisa mengujinya secara lokal di komputer:
+### 📷 1. Modul Kamera & Optimalisasi Perangkat
+- **WebRTC Max-Resolution Capture:** Meminta resolusi kamera tertinggi yang didukung sensor perangkat (hingga 3840x2160 / 4K).
+- **Auto-Sharpening & Dynamic Contrast:** Menggunakan konvolusi matriks 3x3 dan perataan histogram untuk menjaga ketajaman foto di kondisi pencahayaan minim.
+- **Pilihan Rasio Foto:** 1:1 (Square), 4:3 (Classic Strip), dan 16:9 (Widescreen Story).
+- **Pilihan Mode Kolase:** Single Photo, Collage 2x1, Collage 2x2, dan Strip 3x1.
+- **Timer Countdown Audio-Visual:** Pilihan timer instan, 3 detik, 5 detik, dan 10 detik lengkap dengan efek suara synth Web Audio API.
 
-1. Buat berkas `.env` dari `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Isi `SUPABASE_URL` dan `SUPABASE_SERVICE_ROLE_KEY` di berkas `.env`.
-3. Jalankan server lokal:
-   ```bash
-   npm start
-   ```
-4. Buka browser di [http://localhost:8000](http://localhost:8000).
+### 🎨 2. Filter Visual & Kustomisasi Bingkai
+- **8 Filter Studio Dramatis:**
+  - *Clean Studio* (Natural & Crisp)
+  - *B&W High Contrast* (Monochrome Klasik)
+  - *90s Retro Disposable* (Nuansa Nostalgia Film)
+  - *Cyber Vivid* (Punchy & Pop)
+  - *Warm Sunset* (Golden Hour Glow)
+  - *Cinematic Cold* (Moody Teal Blue)
+  - *Rose Golden* (Pastel Warmth)
+  - *Muted Film* (Soft Editorial Tone)
+- **24 Pilihan Warna Bingkai Studio:**
+  - *Koleksi Netral & Pastel:* Studio White, Warm Latte, Vintage Cream, Desert Sand, Soft Sage, Pastel Blush, Lilac Lavender, Sky Breeze, Butter Yellow.
+  - *Koleksi Vibrant & Pop:* Bright Cyan Blue, Sunny Yellow, Sunset Orange, Scarlet Red, Crimson Red, Garnet Wine, Crimson Velvet, Warm Terracotta.
+  - *Koleksi Deep & Royal:* Royal Sapphire, Deep Cobalt, Midnight Navy, Emerald Green, Forest Pine, Matte Obsidian, Jet Black.
+- **6 Gaya Sudut & Dekorasi Foto Inovatif:**
+  - *Siku Tajam* (Classic Studio)
+  - *Curved Haru* (Sudut Melengkung Lembut)
+  - *Stamp Perforated* (Efek Tepi Prangko Pos)
+  - *Polaroid Notch* (Klip Sudut Vintage)
+  - *Film Reel Perforasi* (Border Strip Film Analog 35mm)
+  - *Soft Studio Glow* (Pendaran Bayangan Halus)
+
+### 💳 3. Gerbang Pembayaran Terintegrasi (Payment Gate)
+- **Midtrans Dynamic QRIS:** Integrasi langsung dengan API Midtrans Core untuk menghasilkan QRIS dinamis unik per sesi transaksi.
+- **Simulasi Mode Sandbox / Mock Pay:** Tombol uji bayar khusus developer untuk pengujian alur tanpa harus memotong saldo nyata saat tahap pengujian.
+- **Verifikasi Dua Arah:** Memvalidasi status pembayaran melalui endpoint webhook dan fallback status polling secara aman.
+
+### 🛡️ 4. Privasi Data & Protokol Keamanan (Privacy & Security Protocol)
+- **Tanpa File Mentah di Database:** Database Supabase PostgreSQL hanya menyimpan catatan metadata transaksi (`order_id`, `amount`, `status`, `created_at`). File gambar tidak pernah disimpan di tabel database.
+- **Auto-Delete TTL 24 Jam:** Foto yang diunggah ke Cloud Storage memiliki masa simpan sementara maksimum 24 jam dan dimusnahkan secara berkala melalui Stored Procedure PostgreSQL & Vercel Daily Cron Job.
+- **Keamanan Serverless:** Semua kunci rahasia (*secret keys*) berada di server backend, mencegah eksploitasi atau kebocoran kredensial di sisi pengguna (*client-side*).
 
 ---
 
-## 🔒 Kebijakan Privasi & Auto-Delete 24 Jam
-- **Bebas Data Gambar di Database**: Database Supabase PostgreSQL hanya menyimpan log transaksi (`order_id`, `amount`, `status`, `created_at`). Tidak ada file gambar biner yang disimpan di database.
-- **Auto-Delete TTL 24 Jam**: File foto yang diunggah ke bucket `photobooth-temp` otomatis dibersihkan lewat fungsi database `delete_expired_photobooth_photos()` dan endpoint cron Vercel `/api/cron_cleanup` yang dijadwalkan secara berkala di [vercel.json](file:///c:/Users/muham/Documents/Photobooth/vercel.json).
+## 🛠️ Tech Stack & Arsitektur
+
+| Komponen | Teknologi | Keterangan |
+| :--- | :--- | :--- |
+| **Frontend** | HTML5, CSS3, Vanilla JS (ES6+) | Ringan, responsif, bebas ketergantungan framework berat |
+| **Styling** | Tailwind CSS & Custom Modern Palette | Antarmuka bersih, ramah layar sentuh HP/Tablet, Kiosk Fullscreen |
+| **Grafis & Kamera** | HTML5 Canvas API & WebRTC (`getUserMedia`) | Rendering filter, kompilasi kolase, dan ekspor HD 300 DPI |
+| **Audio Sintesis** | Web Audio API | Efek suara klik shutter dan countdown timer interaktif |
+| **Backend Runtime** | Vercel Serverless Functions (Node.js) | Skalabilitas otomatis tanpa perlu mengelola server manual |
+| **Database** | Supabase (PostgreSQL) | Penyimpanan metadata transaksi yang aman dengan *Row Level Security* (RLS) |
+| **Penyimpanan Berkas** | Supabase Storage Bucket | Tempat penyimpanan foto sementara dengan tautan unduh publik |
+| **Payment Gateway** | Midtrans API (QRIS Dinamis) | Pemrosesan pembayaran otomatis dengan verifikasi instan |
+
+---
+
+## 📁 Struktur Berkas Proyek
+
+```text
+Photobooth/
+├── api/                        # Vercel Serverless Functions (Node.js)
+│   ├── check_status.js         # Endpoint pengecekan status pembayaran
+│   ├── create_payment.js       # Pembuat tagihan Midtrans Dynamic QRIS
+│   ├── cron_cleanup.js         # Cron job pembersih foto kadaluarsa (TTL 24 jam)
+│   ├── mock_pay.js             # Simulasi pembayaran berhasil (Testing)
+│   ├── supabase.js             # Inisialisasi klien Supabase & helper transaksi
+│   ├── upload_temp.js          # Pengunggah foto ke Supabase Storage
+│   └── webhook_callback.js     # Handler notifikasi webhook Midtrans
+├── assets/
+│   ├── css/
+│   │   └── styles.css          # Styling custom & optimasi cetak CSS @page
+│   └── js/
+│       ├── app.js              # State manager, alur antarmuka, & audio sintetis
+│       └── canvas-engine.js    # Mesin kompilasi Canvas, filter visual, & ekspor HD
+├── backend_php/                # Opsi alternatif skrip backend PHP Native
+├── index.html                  # Halaman utama aplikasi (Kiosk & Touch UI)
+├── supabase_schema.sql         # Skrip pembuatan tabel, RLS, & stored procedure Supabase
+├── vercel.json                 # Konfigurasi routing serverless, security headers, & cron
+└── .env.example                # Template variabel lingkungan sistem
+```
+
+---
+
+## 🚀 Panduan Menjalankan Sistem
+
+### Variabel Lingkungan (Environment Variables)
+Salin berkas `.env.example` menjadi `.env`, lalu lengkapi nilai konfigurasi berikut:
+
+```env
+PORT=8000
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+SUPABASE_BUCKET=photobooth-temp
+MIDTRANS_IS_PRODUCTION=false
+MIDTRANS_SERVER_KEY=your-midtrans-server-key
+MIDTRANS_CLIENT_KEY=your-midtrans-client-key
+```
+
+### Menjalankan di Komputer Lokal
+```bash
+# 1. Pasang dependensi
+npm install
+
+# 2. Jalankan server lokal
+npm start
+
+# 3. Akses antarmuka melalui browser
+# http://localhost:8000
+```
+
+### Deployment ke Vercel
+1. Hubungkan repositori GitHub ini ke dashboard [Vercel](https://vercel.com).
+2. Tambahkan variabel lingkungan di menu **Project Settings > Environment Variables**.
+3. Klik **Deploy**. Aplikasi akan otomatis aktif dan siap melayani pengguna.
+
+---
+
+## 📄 Lisensi
+Hak Cipta © 2026 **Qxuan Photobooth**. Dibuat untuk solusi studio foto mandiri modern, cepat, dan aman.
