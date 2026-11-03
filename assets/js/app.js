@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------------------------------------------
-    // 11. FULLSCREEN KIOSK MODE TOGGLE
+    // 11. FULLSCREEN MODE TOGGLE
     // -------------------------------------------------------------
     const btnFullscreen = document.getElementById('btn-fullscreen');
     btnFullscreen.addEventListener('click', () => {

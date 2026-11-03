@@ -1,13 +1,13 @@
 # 📸 Qxuan Photobooth
 
-> **Modern, Minimalist & Production-Ready Self-Photo Studio Kiosk Web Application.**  
+> **Modern, Minimalist & Production-Ready Self-Photo Studio Web Application.**  
 > Dirancang dengan standar estetika studio bersih (*clean aesthetic*), pemrosesan grafis HTML5 Canvas beresolusi tinggi (HD 300 DPI), gerbang pembayaran otomatis **Midtrans Dynamic QRIS**, serta penyimpanan awan sementara berbasis **Supabase (PostgreSQL & Storage)** dengan protokol privasi **Auto-Delete 24 Jam**.
 
 ---
 
 ## 🌟 Gambaran Sistem (System Overview)
 
-**Qxuan Photobooth** adalah platform photobooth berbasis web modern yang dapat dioperasikan pada perangkat **Smartphone (Mobile)**, **Tablet/iPad**, maupun perangkat layar besar **Kiosk / Laptop Studio (Fullscreen Mode)**. 
+**Qxuan Photobooth** adalah platform photobooth berbasis web modern yang dapat dioperasikan pada perangkat **Smartphone (Mobile)**, **Tablet/iPad**, maupun layar laptop/komputer studio (**Mode Layar Penuh / Fullscreen**). 
 
 Aplikasi dibangun menggunakan arsitektur *Zero Heavy Framework* (Vanilla JS + HTML5 Canvas API + Tailwind CSS) untuk memastikan performa yang sangat ringan, waktu pemuatan instan (*zero lag*), serta kompatibilitas maksimal pada berbagai kamera perangkat.
 
@@ -97,7 +97,7 @@ flowchart LR
 | Komponen | Teknologi | Keterangan |
 | :--- | :--- | :--- |
 | **Frontend** | HTML5, CSS3, Vanilla JS (ES6+) | Ringan, responsif, bebas ketergantungan framework berat |
-| **Styling** | Tailwind CSS & Custom Modern Palette | Antarmuka bersih, ramah layar sentuh HP/Tablet, Kiosk Fullscreen |
+| **Styling** | Tailwind CSS & Custom Modern Palette | Antarmuka bersih, ramah layar sentuh HP/Tablet, hingga Layar Penuh Desktop |
 | **Grafis & Kamera** | HTML5 Canvas API & WebRTC (`getUserMedia`) | Rendering filter, kompilasi kolase, dan ekspor HD 300 DPI |
 | **Audio Sintesis** | Web Audio API | Efek suara klik shutter dan countdown timer interaktif |
 | **Backend Runtime** | Vercel Serverless Functions (Node.js) | Skalabilitas otomatis tanpa perlu mengelola server manual |
@@ -126,7 +126,7 @@ Photobooth/
 │       ├── app.js              # State manager, alur antarmuka, & audio sintetis
 │       └── canvas-engine.js    # Mesin kompilasi Canvas, filter visual, & ekspor HD
 ├── backend_php/                # Opsi alternatif skrip backend PHP Native
-├── index.html                  # Halaman utama aplikasi (Kiosk & Touch UI)
+├── index.html                  # Halaman utama antarmuka web responsif studio
 ├── supabase_schema.sql         # Skrip pembuatan tabel, RLS, & stored procedure Supabase
 ├── vercel.json                 # Konfigurasi routing serverless, security headers, & cron
 └── .env.example                # Template variabel lingkungan sistem

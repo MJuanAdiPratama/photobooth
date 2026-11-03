@@ -32,7 +32,7 @@ body {
   min-height: 100dvh;
 }
 
-/* Kiosk Fullscreen Mode Styling */
+/* Fullscreen Mode Styling */
 :fullscreen body, :-webkit-full-screen body {
   background-color: #121214;
 }
