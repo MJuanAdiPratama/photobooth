@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayOrderId    = document.getElementById('display-order-id');
     const priceDisplay      = document.getElementById('price-display');
 
-    const mobileQrContainer = document.getElementById('mobile-download-qr');
     const printImageEl      = document.getElementById('print-image');
 
     // Inisialisasi Engine
@@ -642,59 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const hdDataUrl = state.compositeResultCanvas.toDataURL('image/png');
         printImageEl.src = hdDataUrl;
-
-        uploadTemporaryCloud(hdDataUrl);
-    }
-
-    async function uploadTemporaryCloud(dataUrl) {
-        mobileQrContainer.innerHTML = `
-            <div class="text-center p-2">
-                <div class="w-5 h-5 border-2 border-studio-900 border-t-transparent rounded-full animate-spin mx-auto mb-1"></div>
-                <span class="text-[9px] text-studio-400">Menyimpan cloud (TTL 24h)...</span>
-            </div>
-        `;
-
-        const qrActionWrap = document.getElementById('qr-link-action-wrap');
-        if (qrActionWrap) qrActionWrap.innerHTML = '';
-
-        try {
-            const resp = await fetch('api/upload_temp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    image_data: dataUrl,
-                    order_id: state.orderId,
-                    format: 'png'
-                })
-            });
-
-            const res = await resp.json().catch(() => ({}));
-            if (res.success && res.data && res.data.download_url) {
-                state.tempDownloadUrl = res.data.download_url;
-
-                // Tampilkan QR Code Tajam 130x130
-                mobileQrContainer.innerHTML = `
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=2&data=${encodeURIComponent(state.tempDownloadUrl)}" 
-                         alt="QR Download Foto" 
-                         class="w-28 h-28 object-contain rounded-lg shadow-2xs">
-                `;
-
-                // Tampilkan tombol tes buka tautan langsung
-                if (qrActionWrap) {
-                    qrActionWrap.innerHTML = `
-                        <a href="${state.tempDownloadUrl}" target="_blank" rel="noopener noreferrer" 
-                           class="inline-flex items-center text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1 rounded-lg border border-emerald-200 transition shadow-2xs">
-                            🔗 Buka Tautan Foto di Tab Baru →
-                        </a>
-                    `;
-                }
-            } else {
-                mobileQrContainer.innerHTML = `<span class="text-[9px] text-rose-500 text-center px-1">Gagal upload cloud</span>`;
-            }
-        } catch (err) {
-            console.error('[Cloud Upload Error]', err);
-            mobileQrContainer.innerHTML = `<span class="text-[9px] text-stone-400 text-center px-1">Koneksi offline</span>`;
-        }
     }
 
     // Fungsi Cetak Foto Khusus Kertas Foto (Tanpa Lebih Kertas Putih)
