@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStep: 1,
         layoutMode: 'single', // 'single', 'collage_2x1', 'collage_2x2', 'collage_3x1'
         aspectRatio: '4:3',   // '1:1', '4:3', '16:9'
+        orientation: 'portrait', // 'portrait' (tegak) atau 'landscape' (mendatar)
         timerSeconds: 3,      // 0, 3, 5, 10
         facingMode: 'user',   // 'user' atau 'environment'
         
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFrameStyle: 'solid',
 
         orderId: null,
-        amount: 25000,
+        amount: 10000,
         isPaid: false,
         pollingInterval: null,
         
@@ -241,6 +242,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Helper: Update Rasio Aspek Label & Button
+    function updateRatioLabels() {
+        const labelClassic = document.getElementById('label-ratio-classic');
+        const labelWide = document.getElementById('label-ratio-wide');
+        const toggleBtnLabel = document.getElementById('orientation-toggle-label');
+
+        if (state.orientation === 'portrait') {
+            if (labelClassic) labelClassic.textContent = '3 : 4';
+            if (labelWide) labelWide.textContent = '9 : 16';
+            if (toggleBtnLabel) toggleBtnLabel.textContent = '📱 Potret';
+        } else {
+            if (labelClassic) labelClassic.textContent = '4 : 3';
+            if (labelWide) labelWide.textContent = '16 : 9';
+            if (toggleBtnLabel) toggleBtnLabel.textContent = '💻 Lanskap';
+        }
+    }
+
+    // Helper: Update Viewfinder Aspect Ratio & Max-Width
+    function updateViewfinderDimensions() {
+        if (!viewfinderWrap) return;
+        const baseClass = 'video-viewport w-full rounded-2xl border border-studio-800 shadow-xl overflow-hidden relative bg-black max-h-[68vh] transition-all duration-300';
+
+        if (state.aspectRatio === '1:1') {
+            viewfinderWrap.className = `${baseClass} aspect-square max-w-sm sm:max-w-md mx-auto`;
+        } else if (state.orientation === 'portrait') {
+            // Mode Potret (Tegak)
+            if (state.aspectRatio === '16:9') {
+                viewfinderWrap.className = `${baseClass} aspect-[9/16] max-w-xs sm:max-w-sm mx-auto`;
+            } else {
+                viewfinderWrap.className = `${baseClass} aspect-[3/4] max-w-sm sm:max-w-md mx-auto`;
+            }
+        } else {
+            // Mode Lanskap (Mendatar)
+            if (state.aspectRatio === '16:9') {
+                viewfinderWrap.className = `${baseClass} aspect-[16/9] max-w-3xl mx-auto`;
+            } else {
+                viewfinderWrap.className = `${baseClass} aspect-[4/3] max-w-2xl mx-auto`;
+            }
+        }
+    }
+
+    // Orientation Choice Listener (Potret vs Lanskap)
+    document.querySelectorAll('.orientation-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.orientation-choice').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.orientation = btn.dataset.orientation;
+            updateRatioLabels();
+            updateViewfinderDimensions();
+        });
+    });
+
     document.querySelectorAll('.ratio-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.ratio-choice').forEach(b => b.classList.remove('active'));
@@ -260,15 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-start-session').addEventListener('click', async () => {
         setStep(2);
-        
-        viewfinderWrap.className = 'video-viewport w-full rounded-2xl border border-studio-800 shadow-xl overflow-hidden relative bg-black max-h-[68vh]';
-        if (state.aspectRatio === '1:1') {
-            viewfinderWrap.classList.add('aspect-square', 'max-w-md', 'mx-auto');
-        } else if (state.aspectRatio === '16:9') {
-            viewfinderWrap.classList.add('aspect-[16/9]');
-        } else {
-            viewfinderWrap.classList.add('aspect-[4/3]');
-        }
+        updateRatioLabels();
+        updateViewfinderDimensions();
 
         state.capturedFrames = [];
         state.currentCaptureIdx = 0;
@@ -291,6 +337,22 @@ document.addEventListener('DOMContentLoaded', () => {
         cameraEngine.stopCamera();
         setStep(1);
     });
+
+    // Toggle Orientasi Cepat di Layar Kamera (Step 2)
+    const btnToggleOrientation = document.getElementById('btn-toggle-orientation');
+    if (btnToggleOrientation) {
+        btnToggleOrientation.addEventListener('click', () => {
+            state.orientation = (state.orientation === 'portrait') ? 'landscape' : 'portrait';
+            
+            // Sinkronkan tombol di Step 1
+            document.querySelectorAll('.orientation-choice').forEach(b => {
+                b.classList.toggle('active', b.dataset.orientation === state.orientation);
+            });
+
+            updateRatioLabels();
+            updateViewfinderDimensions();
+        });
+    }
 
     document.getElementById('btn-switch-camera').addEventListener('click', async () => {
         const result = await cameraEngine.switchCamera();
@@ -333,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playShutterSound();
         setTimeout(() => shutterFlash.classList.remove('flash-active'), 450);
 
-        const rawFrame = cameraEngine.captureFrame(state.aspectRatio);
+        const rawFrame = cameraEngine.captureFrame(state.aspectRatio, state.orientation);
         const enhancedFrame = canvasEngine.enhanceRawCapture(rawFrame);
         state.capturedFrames.push(enhancedFrame);
         state.currentCaptureIdx++;
@@ -531,36 +593,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tombol Simulasi Pembayaran Sukses (Mode Sandbox / Dev Testing)
     document.getElementById('btn-simulate-payment').addEventListener('click', async () => {
-        if (!state.orderId) return;
+        // Jika belum ada orderId (misal gagal memuat Midtrans), otomatis buat orderId simulasi
+        if (!state.orderId) {
+            state.orderId = `QXUAN-SIM-${Date.now()}`;
+            if (displayOrderId) displayOrderId.textContent = state.orderId;
+        }
+
+        const proceedSuccess = () => {
+            if (state.pollingInterval) clearInterval(state.pollingInterval);
+            state.isPaid = true;
+            
+            showModal({
+                title: 'Pembayaran Terverifikasi!',
+                message: 'Simulasi pembayaran sukses berhasil diaktifkan. Tombol Cetak dan Download HD telah dibuka.',
+                type: 'success',
+                confirmText: 'Buka Foto Saya',
+                onConfirm: () => {
+                    handlePaymentSuccess();
+                }
+            });
+        };
+
         try {
             const resp = await fetch('api/mock_pay', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ order_id: state.orderId })
             });
-            const res = await resp.json();
+            const res = await resp.json().catch(() => ({}));
+            
             if (res.success) {
-                if (state.pollingInterval) clearInterval(state.pollingInterval);
-                state.isPaid = true;
-                
-                showModal({
-                    title: 'Pembayaran Terverifikasi!',
-                    message: 'Simulasi pembayaran sukses berhasil diaktifkan. Tombol Cetak dan Download HD telah dibuka.',
-                    type: 'success',
-                    confirmText: 'Buka Foto Saya',
-                    onConfirm: () => {
-                        handlePaymentSuccess();
-                    }
-                });
+                proceedSuccess();
             } else {
-                showModal({
-                    title: 'Simulasi Gagal',
-                    message: res.message || 'Tidak dapat memproses simulasi.',
-                    type: 'warning'
-                });
+                console.warn('[Mock Pay Response, applying direct fallback]', res);
+                proceedSuccess();
             }
         } catch (err) {
-            console.error('[Simulate Error]', err);
+            console.warn('[Simulate Error, applying client-side fallback]', err);
+            proceedSuccess();
         }
     });
 

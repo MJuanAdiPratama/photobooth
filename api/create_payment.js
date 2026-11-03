@@ -9,10 +9,10 @@ const { supabase, isSupabaseConfigured, saveLocalTx } = require('./supabase');
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
 const MIDTRANS_IS_PROD = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 const MIDTRANS_URL = MIDTRANS_IS_PROD ? 'https://api.midtrans.com/v2' : 'https://api.sandbox.midtrans.com/v2';
-const DEFAULT_PRICE = 25000;
+const DEFAULT_PRICE = 10000;
 
 const ALLOWED_LAYOUTS = ['single', 'collage_2x1', 'collage_2x2', 'collage_3x1'];
-const ALLOWED_RATIOS  = ['1:1', '4:3', '16:9'];
+const ALLOWED_RATIOS  = ['1:1', '4:3', '16:9', '3:4', '9:16'];
 
 module.exports = async (req, res) => {
     // Security & CORS headers

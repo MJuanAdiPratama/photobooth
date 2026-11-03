@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id VARCHAR(64) UNIQUE NOT NULL,
     transaction_id VARCHAR(64) NULL,
-    amount NUMERIC(12, 2) NOT NULL DEFAULT 25000.00,
+    amount NUMERIC(12, 2) NOT NULL DEFAULT 10000.00,
     status VARCHAR(32) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'expired', 'failed')),
     payment_type VARCHAR(32) NOT NULL DEFAULT 'qris',
     qris_url TEXT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
 INSERT INTO public.system_settings (setting_key, setting_value, description)
 VALUES 
     ('booth_name', 'Qxuan Photobooth', 'Nama brand studio photobooth'),
-    ('price_per_session', '25000', 'Tarif per sesi foto dalam Rupiah'),
+    ('price_per_session', '10000', 'Tarif per sesi foto dalam Rupiah'),
     ('currency', 'IDR', 'Mata uang pembayaran'),
     ('allow_demo_payment', '1', 'Izinkan tombol simulasi bayar sukses saat testing (1=Ya, 0=Tidak)')
 ON CONFLICT (setting_key) DO UPDATE 

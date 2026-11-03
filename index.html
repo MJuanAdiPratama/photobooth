@@ -120,7 +120,30 @@
                     </div>
                 </div>
 
-                <!-- 2. Pilihan Aspect Ratio -->
+                <!-- 2. Orientasi Kamera (Potret / Lanskap) -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
+                        Orientasi Kamera
+                    </label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" data-orientation="portrait" class="orientation-choice choice-card active p-3 rounded-xl flex items-center justify-center space-x-2 text-center">
+                            <svg class="w-5 h-5 text-studio-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2" stroke-width="1.75"/><circle cx="12" cy="18" r="0.75" fill="currentColor"/></svg>
+                            <div class="text-left">
+                                <span class="text-xs font-semibold block">Potret (Tegak)</span>
+                                <span class="text-[10px] opacity-75">Format Pas Foto / Strip</span>
+                            </div>
+                        </button>
+                        <button type="button" data-orientation="landscape" class="orientation-choice choice-card p-3 rounded-xl flex items-center justify-center space-x-2 text-center">
+                            <svg class="w-5 h-5 text-studio-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2" stroke-width="1.75"/><circle cx="18" cy="12" r="0.75" fill="currentColor"/></svg>
+                            <div class="text-left">
+                                <span class="text-xs font-semibold block">Lanskap (Mendatar)</span>
+                                <span class="text-[10px] opacity-75">Format Foto Melebar</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Pilihan Aspect Ratio -->
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
                         Rasio Aspek Kamera
@@ -131,17 +154,17 @@
                             <span class="text-[10px] opacity-75 mt-0.5">Square / Kotak</span>
                         </button>
                         <button type="button" data-ratio="4:3" class="ratio-choice choice-card active p-3 rounded-xl flex flex-col items-center text-center">
-                            <span class="text-xs font-bold font-mono">4 : 3</span>
+                            <span id="label-ratio-classic" class="text-xs font-bold font-mono">3 : 4</span>
                             <span class="text-[10px] opacity-75 mt-0.5">Classic Strip</span>
                         </button>
                         <button type="button" data-ratio="16:9" class="ratio-choice choice-card p-3 rounded-xl flex flex-col items-center text-center">
-                            <span class="text-xs font-bold font-mono">16 : 9</span>
-                            <span class="text-[10px] opacity-75 mt-0.5">Widescreen</span>
+                            <span id="label-ratio-wide" class="text-xs font-bold font-mono">9 : 16</span>
+                            <span class="text-[10px] opacity-75 mt-0.5">Story / Widescreen</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- 3. Pilihan Timer Countdown -->
+                <!-- 4. Pilihan Timer Countdown -->
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2.5">
                         Timer Hitung Mundur
@@ -191,6 +214,11 @@
                     </span>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <!-- Toggle Orientation Button (Portrait / Landscape) -->
+                    <button id="btn-toggle-orientation" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-medium text-studio-700 flex items-center shadow-xs" title="Ganti Orientasi (Potret / Lanskap)">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                        <span id="orientation-toggle-label">📱 Potret</span>
+                    </button>
                     <!-- Switch Camera Front/Back -->
                     <button id="btn-switch-camera" class="px-3 py-1.5 rounded-lg border border-studio-200 bg-white hover:bg-studio-100 text-xs font-medium text-studio-700 flex items-center shadow-xs">
                         <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -402,16 +430,16 @@
                 <div>
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-                        Midtrans Dynamic QRIS
+                        QRIS
                     </span>
                     <h3 class="text-xl font-bold tracking-tight text-studio-900 mt-3">Pembayaran Sesi Foto</h3>
-                    <p class="text-xs text-studio-500 mt-0.5">Scan kode QRIS di bawah menggunakan GoPay, BCA, OVO, ShopeePay, atau Bank apa saja.</p>
+                    <p class="text-xs text-studio-500 mt-0.5">Scan kode QRIS dibawah menggunakan Dana, Gopay, ShopeePay, BCA, atau Bank/E-Wallet apa saja.</p>
                 </div>
 
                 <!-- Nominal Harga -->
                 <div class="bg-studio-50 py-3.5 px-4 rounded-xl border border-studio-100 flex items-center justify-between">
-                    <span class="text-xs text-studio-500 font-medium">Total Biaya Sesi:</span>
-                    <span id="price-display" class="text-lg font-bold text-studio-900">Rp 25.000</span>
+                    <span class="text-xs text-studio-500 font-medium">Total Biaya:</span>
+                    <span id="price-display" class="text-lg font-bold text-studio-900">Rp 10.000</span>
                 </div>
 
                 <!-- QRIS Code Container -->

@@ -283,7 +283,18 @@ class CanvasEngine {
         let cols = 1;
         let rows = 1;
 
-        if (layoutMode === 'collage_2x1') {
+        if (layoutMode === 'single') {
+            const first = photoCanvases[0];
+            if (first && first.width > first.height) {
+                // Orientasi Lanskap (Mendatar)
+                canvasW = 1800;
+                canvasH = 1350;
+            } else {
+                // Orientasi Potret (Tegak)
+                canvasW = 1200;
+                canvasH = 1800;
+            }
+        } else if (layoutMode === 'collage_2x1') {
             cols = 1; rows = 2;
             canvasW = 800; canvasH = 1600;
         } else if (layoutMode === 'collage_2x2') {

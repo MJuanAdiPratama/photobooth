@@ -104,9 +104,10 @@ class CameraManager {
 
     /**
      * Menangkap frame gambar saat ini dari stream kamera dengan resolusi asli sensor
-     * @param {string} targetAspectRatio '1:1', '4:3', atau '16:9'
+     * @param {string} targetAspectRatio '1:1', '4:3', '16:9', '3:4', '9:16'
+     * @param {string} orientation 'portrait' atau 'landscape'
      */
-    captureFrame(targetAspectRatio = '4:3') {
+    captureFrame(targetAspectRatio = '4:3', orientation = 'portrait') {
         if (!this.video || !this.video.videoWidth) {
             throw new Error('Stream video kamera belum siap.');
         }
@@ -114,12 +115,17 @@ class CameraManager {
         const sourceW = this.video.videoWidth;
         const sourceH = this.video.videoHeight;
 
-        // Hitung rasio target
+        // Hitung rasio target numerik berdasarkan Aspect Ratio dan Orientasi (Portrait / Landscape)
         let targetRatioVal = 4 / 3;
-        if (targetAspectRatio === '1:1') targetRatioVal = 1;
-        else if (targetAspectRatio === '16:9') targetRatioVal = 16 / 9;
+        if (targetAspectRatio === '1:1') {
+            targetRatioVal = 1;
+        } else if (targetAspectRatio === '16:9' || targetAspectRatio === '9:16') {
+            targetRatioVal = (orientation === 'portrait') ? (9 / 16) : (16 / 9);
+        } else { // '4:3' atau '3:4'
+            targetRatioVal = (orientation === 'portrait') ? (3 / 4) : (4 / 3);
+        }
 
-        // Hitung crop center agar proporsi sesuai rasio yang dipilih tanpa distorsi stretch
+        // Hitung crop center agar proporsi sesuai rasio dan orientasi yang dipilih tanpa distorsi stretch
         let cropW = sourceW;
         let cropH = sourceW / targetRatioVal;
 

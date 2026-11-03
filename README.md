@@ -1,7 +1,7 @@
 # 📸 Qxuan Photobooth
 
 > **Modern, Minimalist & Production-Ready Self-Photo Studio Web Application.**  
-> Dirancang dengan standar estetika studio bersih (*clean aesthetic*), pemrosesan grafis HTML5 Canvas beresolusi tinggi (HD 300 DPI), gerbang pembayaran otomatis **Midtrans Dynamic QRIS**, serta penyimpanan awan sementara berbasis **Supabase (PostgreSQL & Storage)** dengan protokol privasi **Auto-Delete 24 Jam**.
+> Dirancang dengan standar estetika studio bersih (*clean aesthetic*), pemrosesan grafis HTML5 Canvas beresolusi tinggi (HD 300 DPI), gerbang pembayaran otomatis **QRIS Dinamis**, serta penyimpanan awan sementara berbasis **Supabase (PostgreSQL & Storage)** dengan protokol privasi **Auto-Delete 24 Jam**.
 
 ---
 
@@ -81,7 +81,7 @@ flowchart LR
   - *Soft Studio Glow* (Pendaran Bayangan Halus)
 
 ### 💳 3. Gerbang Pembayaran Terintegrasi (Payment Gate)
-- **Midtrans Dynamic QRIS:** Integrasi langsung dengan API Midtrans Core untuk menghasilkan QRIS dinamis unik per sesi transaksi.
+- **QRIS Dinamis:** Pemrosesan otomatis untuk menghasilkan QRIS unik per sesi transaksi.
 - **Simulasi Mode Sandbox / Mock Pay:** Tombol uji bayar khusus developer untuk pengujian alur tanpa harus memotong saldo nyata saat tahap pengujian.
 - **Verifikasi Dua Arah:** Memvalidasi status pembayaran melalui endpoint webhook dan fallback status polling secara aman.
 
@@ -113,7 +113,7 @@ flowchart LR
 Photobooth/
 ├── api/                        # Vercel Serverless Functions (Node.js)
 │   ├── check_status.js         # Endpoint pengecekan status pembayaran
-│   ├── create_payment.js       # Pembuat tagihan Midtrans Dynamic QRIS
+│   ├── create_payment.js       # Pembuat tagihan QRIS dinamis per sesi foto
 │   ├── cron_cleanup.js         # Cron job pembersih foto kadaluarsa (TTL 24 jam)
 │   ├── mock_pay.js             # Simulasi pembayaran berhasil (Testing)
 │   ├── supabase.js             # Inisialisasi klien Supabase & helper transaksi

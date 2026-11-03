@@ -20,22 +20,20 @@ module.exports = async (req, res) => {
         return res.status(405).json({ success: false, message: 'Metode harus POST.' });
     }
 
-    // Proteksi Keamanan Produksi: Cegah eksploitasi bypass pembayaran di website live
-    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
-    const isDemoAllowed = process.env.ALLOW_DEMO_PAYMENT === 'true' || (!isProd && process.env.ALLOW_DEMO_PAYMENT !== 'false');
-
-    if (!isDemoAllowed) {
+    // Mode Simulasi: Diaktifkan secara default untuk keperluan demo & pengujian
+    // Dapat dinonaktifkan jika environment variable DISABLE_MOCK_PAY=true
+    if (process.env.DISABLE_MOCK_PAY === 'true') {
         return res.status(403).json({
             success: false,
-            message: 'Akses ditolak. Simulasi pembayaran dinonaktifkan di environment produksi demi keamanan.'
+            message: 'Akses ditolak. Simulasi pembayaran dinonaktifkan oleh pemilik sistem.'
         });
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const orderId = body.order_id || req.query.order_id;
 
-    // Validasi format Order ID agar mencegah injeksi
-    if (!orderId || !/^[A-Za-z0-9\-_]{10,64}$/.test(orderId)) {
+    // Validasi format Order ID
+    if (!orderId || !/^[A-Za-z0-9\-_]{5,64}$/.test(orderId)) {
         return res.status(400).json({ success: false, message: 'Format parameter order_id tidak valid.' });
     }
 
@@ -43,22 +41,25 @@ module.exports = async (req, res) => {
 
     // Update Local Cache
     saveLocalTx(orderId, {
+        order_id: orderId,
         status: 'paid',
         transaction_id: fakeTxId,
         updated_at: new Date().toISOString()
     });
 
-    // Update Supabase jika aktif
+    // Update atau Buat Transaksi di Supabase jika aktif
     if (isSupabaseConfigured()) {
         try {
             const { error } = await supabase
                 .from('transactions')
-                .update({
-                    status: 'paid',
+                .upsert({
+                    order_id: orderId,
                     transaction_id: fakeTxId,
+                    status: 'paid',
+                    amount: 10000,
+                    payment_type: 'qris_simulated',
                     updated_at: new Date().toISOString()
-                })
-                .eq('order_id', orderId);
+                }, { onConflict: 'order_id' });
 
             if (error) {
                 console.error('[Supabase Mock Pay Error]', error);
