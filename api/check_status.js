@@ -1,6 +1,7 @@
 /**
  * Vercel Serverless Function: Check Payment Status
  * Endpoint: GET /api/check_status?order_id=...
+ * Hardened with Input Validation & Security Sanitation
  */
 
 const { supabase, isSupabaseConfigured, getLocalTx } = require('./supabase');
@@ -9,6 +10,7 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -16,10 +18,11 @@ module.exports = async (req, res) => {
 
     const orderId = req.query.order_id || (req.body && req.body.order_id);
 
-    if (!orderId) {
+    // Validasi regex order_id untuk mencegah eksploitasi
+    if (!orderId || !/^[A-Za-z0-9\-_]{10,64}$/.test(orderId)) {
         return res.status(400).json({
             success: false,
-            message: 'Parameter order_id wajib disertakan.'
+            message: 'Parameter order_id tidak valid atau tidak disertakan.'
         });
     }
 

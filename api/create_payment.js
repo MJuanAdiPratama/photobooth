@@ -1,6 +1,7 @@
 /**
  * Vercel Serverless Function: Create Midtrans QRIS Payment
  * Endpoint: POST /api/create_payment
+ * Hardened with Input Validation & Security Sanitation
  */
 
 const { supabase, isSupabaseConfigured, saveLocalTx } = require('./supabase');
@@ -10,11 +11,15 @@ const MIDTRANS_IS_PROD = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 const MIDTRANS_URL = MIDTRANS_IS_PROD ? 'https://api.midtrans.com/v2' : 'https://api.sandbox.midtrans.com/v2';
 const DEFAULT_PRICE = 25000;
 
+const ALLOWED_LAYOUTS = ['single', 'collage_2x1', 'collage_2x2', 'collage_3x1'];
+const ALLOWED_RATIOS  = ['1:1', '4:3', '16:9'];
+
 module.exports = async (req, res) => {
-    // CORS headers
+    // Security & CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -25,10 +30,18 @@ module.exports = async (req, res) => {
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    const amount = Number(body.amount) || DEFAULT_PRICE;
-    const layoutMode = body.layout_mode || 'single';
-    const aspectRatio = body.aspect_ratio || '4:3';
-    const filterName = body.filter || 'normal';
+    
+    // Sanitasi & Validasi Input
+    let amount = Number(body.amount) || DEFAULT_PRICE;
+    amount = Math.min(10000000, Math.max(1000, amount)); // Batasi rentang nominal wajar (Rp 1.000 - Rp 10.000.000)
+
+    const rawLayout = String(body.layout_mode || 'single').toLowerCase();
+    const layoutMode = ALLOWED_LAYOUTS.includes(rawLayout) ? rawLayout : 'single';
+
+    const rawRatio = String(body.aspect_ratio || '4:3');
+    const aspectRatio = ALLOWED_RATIOS.includes(rawRatio) ? rawRatio : '4:3';
+
+    const filterName = String(body.filter || 'normal').substring(0, 32);
 
     const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
     const orderId = `QXUAN-${timestamp}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -88,7 +101,7 @@ module.exports = async (req, res) => {
         qrisUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(qrString)}`;
     }
 
-    // Simpan ke Cache Lokal (Selalu aktif agar offline/local testing lancar)
+    // Simpan ke Cache Lokal
     saveLocalTx(orderId, {
         order_id: orderId,
         transaction_id: transactionId,

@@ -1,7 +1,9 @@
 /**
- * Qxuan Photobooth - Master Application Controller
+ * Qxuan Photobooth - Master Application Controller (Expanded Edition)
  * Mengatur alur langkah demi langkah (Stepper UI), Web Audio API synth effects,
- * integrasi kamera WebRTC, live filter studio, Midtrans QRIS gate, dan ekspor cetak HD.
+ * sistem popup modal & notifikasi kustom (tanpa alert/confirm bawaan browser),
+ * integrasi kamera WebRTC 4K, 8 live filter dramatis, tema karakter & klub sepakbola,
+ * serta integrasi Midtrans QRIS & Supabase Storage.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFilter: 'normal',
         selectedTheme: 'white',
         selectedFrameStyle: 'solid',
-        customText: 'QXUAN PHOTOBOOTH',
 
         orderId: null,
         amount: 25000,
@@ -63,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerDisplayBadge = document.getElementById('timer-display-badge');
 
     const compositeCanvas   = document.getElementById('composite-canvas');
-    const inputCustomText   = document.getElementById('input-custom-text');
 
     const qrisContainer     = document.getElementById('qris-image-container');
     const displayOrderId    = document.getElementById('display-order-id');
@@ -77,7 +77,71 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasEngine = new CanvasEngine();
 
     // -------------------------------------------------------------
-    // 3. WEB AUDIO SYNTHESIZER (Tanpa file audio eksternal)
+    // 3. SISTEM POPUP MODAL NOTIFIKASI & KONFIRMASI (Revisi 1)
+    // -------------------------------------------------------------
+    function showModal({
+        title = 'Informasi',
+        message = '',
+        type = 'info', // 'info', 'confirm', 'warning', 'success', 'danger'
+        confirmText = 'OK',
+        cancelText = 'Batal',
+        showCancel = false,
+        onConfirm = null,
+        onCancel = null
+    }) {
+        const modalContainer = document.getElementById('studio-modal-container');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMsg = document.getElementById('modal-message');
+        const iconWrap = document.getElementById('modal-icon-wrap');
+        const btnConfirm = document.getElementById('modal-btn-confirm');
+        const btnCancel = document.getElementById('modal-btn-cancel');
+
+        modalTitle.textContent = title;
+        modalMsg.textContent = message;
+
+        btnConfirm.textContent = confirmText;
+        btnCancel.textContent = cancelText;
+
+        if (showCancel) {
+            btnCancel.classList.remove('hidden');
+        } else {
+            btnCancel.classList.add('hidden');
+        }
+
+        // Penataan ikon & tombol berdasarkan jenis tipe
+        if (type === 'danger' || type === 'warning') {
+            iconWrap.className = 'w-12 h-12 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-amber-100 text-amber-700';
+            iconWrap.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+            btnConfirm.className = 'btn-touch flex-1 py-2.5 px-4 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-semibold transition shadow-sm';
+        } else if (type === 'success') {
+            iconWrap.className = 'w-12 h-12 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-emerald-100 text-emerald-700';
+            iconWrap.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+            btnConfirm.className = 'btn-touch flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-sm';
+        } else {
+            iconWrap.className = 'w-12 h-12 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-studio-100 text-studio-900';
+            iconWrap.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            btnConfirm.className = 'btn-touch flex-1 py-2.5 px-4 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-semibold transition shadow-sm';
+        }
+
+        const closeModal = () => {
+            modalContainer.classList.add('hidden');
+        };
+
+        btnConfirm.onclick = () => {
+            closeModal();
+            if (onConfirm) onConfirm();
+        };
+
+        btnCancel.onclick = () => {
+            closeModal();
+            if (onCancel) onCancel();
+        };
+
+        modalContainer.classList.remove('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // 4. WEB AUDIO SYNTHESIZER (Tanpa file audio eksternal)
     // -------------------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
@@ -91,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return audioCtx;
     }
 
-    // Beep timer countdown
     function playBeep(pitch = 880, duration = 0.08) {
         try {
             const ctx = getAudioContext();
@@ -111,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Shutter camera click effect
     function playShutterSound() {
         try {
             const ctx = getAudioContext();
@@ -133,12 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 4. STEPPER NAVIGATION CONTROLLER
+    // 5. STEPPER NAVIGATION CONTROLLER
     // -------------------------------------------------------------
     function setStep(stepNumber) {
         state.currentStep = stepNumber;
 
-        // Tampilkan hanya view yang aktif
         Object.keys(views).forEach(key => {
             const num = parseInt(key.replace('step', ''));
             if (num === stepNumber) {
@@ -148,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Update badge navigasi di header
         Object.keys(stepDots).forEach(numStr => {
             const num = parseInt(numStr);
             const dot = stepDots[num];
@@ -162,21 +222,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Scroll halus ke atas saat pindah view
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // -------------------------------------------------------------
-    // 5. STEP 1: PILIHAN MODE & SELEKSI
+    // 6. STEP 1: PILIHAN MODE & SELEKSI
     // -------------------------------------------------------------
-    // Layout choices
     document.querySelectorAll('.layout-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.layout-choice').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             state.layoutMode = btn.dataset.layout;
             
-            // Hitung target foto per sesi
             if (state.layoutMode === 'single') state.targetCount = 1;
             else if (state.layoutMode === 'collage_2x1') state.targetCount = 2;
             else if (state.layoutMode === 'collage_2x2') state.targetCount = 4;
@@ -184,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Ratio choices
     document.querySelectorAll('.ratio-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.ratio-choice').forEach(b => b.classList.remove('active'));
@@ -193,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Timer choices
     document.querySelectorAll('.timer-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.timer-choice').forEach(b => b.classList.remove('active'));
@@ -203,11 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Mulai Sesi Foto -> Pindah ke Ruang Kamera
     document.getElementById('btn-start-session').addEventListener('click', async () => {
         setStep(2);
         
-        // Sesuaikan aspect ratio container kamera
         viewfinderWrap.className = 'video-viewport w-full rounded-2xl border border-studio-800 shadow-xl overflow-hidden relative bg-black max-h-[68vh]';
         if (state.aspectRatio === '1:1') {
             viewfinderWrap.classList.add('aspect-square', 'max-w-md', 'mx-auto');
@@ -217,27 +270,28 @@ document.addEventListener('DOMContentLoaded', () => {
             viewfinderWrap.classList.add('aspect-[4/3]');
         }
 
-        // Reset buffer foto sesi ini
         state.capturedFrames = [];
         state.currentCaptureIdx = 0;
         updateCaptureBadge();
 
-        // Mulai kamera WebRTC
         const camResult = await cameraEngine.startCamera(state.facingMode);
         if (camResult.success) {
-            resLabel.textContent = `Resolusi Kamera: ${camResult.resolution.width}x${camResult.resolution.height}`;
+            resLabel.textContent = `Resolusi: ${camResult.resolution.width}x${camResult.resolution.height}`;
         } else {
-            alert('Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan di browser Anda.');
+            showModal({
+                title: 'Akses Kamera Terkendala',
+                message: 'Tidak dapat mengakses perangkat kamera. Pastikan Anda telah memberikan izin kamera pada peramban (browser) Anda.',
+                type: 'warning',
+                confirmText: 'Mengerti'
+            });
         }
     });
 
-    // Kembali ke Setup dari Kamera
     document.getElementById('btn-back-to-setup').addEventListener('click', () => {
         cameraEngine.stopCamera();
         setStep(1);
     });
 
-    // Tombol Balik Kamera (Depan / Belakang)
     document.getElementById('btn-switch-camera').addEventListener('click', async () => {
         const result = await cameraEngine.switchCamera();
         if (result.success) {
@@ -247,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------------------------------------------
-    // 6. STEP 2: PROSES PENGAMBILAN FOTO (MULTI-SHOT COUNTDOWN)
+    // 7. STEP 2: PROSES PENGAMBILAN FOTO
     // -------------------------------------------------------------
     function updateCaptureBadge() {
         captureBadge.textContent = `Foto ${state.currentCaptureIdx + 1} dari ${state.targetCount}`;
@@ -275,38 +329,29 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownOverlay.classList.add('hidden');
         }
 
-        // Efek Flash Layar & Shutter Sound
         shutterFlash.classList.add('flash-active');
         playShutterSound();
         setTimeout(() => shutterFlash.classList.remove('flash-active'), 450);
 
-        // Ambil frame kamera mentah
         const rawFrame = cameraEngine.captureFrame(state.aspectRatio);
-
-        // Terapkan pra-pemrosesan: Auto-Contrast & Sharpening
         const enhancedFrame = canvasEngine.enhanceRawCapture(rawFrame);
         state.capturedFrames.push(enhancedFrame);
         state.currentCaptureIdx++;
 
-        // Jika masih ada sisa foto dalam mode kolase
         if (state.currentCaptureIdx < state.targetCount) {
             updateCaptureBadge();
-            // Jeda istirahat 1.8 detik sebelum giliran foto berikutnya
             await sleep(1800);
             state.isCapturingSession = false;
             btnTriggerShutter.disabled = false;
 
-            // Jika timer otomatis aktif, lanjut hitung mundur berikutnya
             if (state.timerSeconds > 0) {
                 executePhotoCaptureSequence();
             }
         } else {
-            // Selesai seluruh jepretan sesi!
             cameraEngine.stopCamera();
             state.isCapturingSession = false;
             btnTriggerShutter.disabled = false;
             
-            // Masuk ke Studio Editor
             setStep(3);
             renderStudioComposite();
         }
@@ -317,29 +362,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 7. STEP 3: STUDIO EDITOR & CUSTOMIZATION
+    // 8. STEP 3: STUDIO EDITOR & CUSTOMIZATION
     // -------------------------------------------------------------
     function renderStudioComposite() {
         if (!state.capturedFrames.length) return;
 
-        // Terapkan filter visual terpilih ke setiap jepretan foto
+        // Terapkan filter visual transformatif terpilih
         const filteredFrames = state.capturedFrames.map(frame => {
             return canvasEngine.applyFilter(frame, state.selectedFilter);
         });
 
-        // Buat kolase HD
+        // Buat kolase HD dengan tema bingkai & gaya sudut terpilih
         const outCanvas = canvasEngine.composeCollage({
             photoCanvases: filteredFrames,
             layoutMode: state.layoutMode,
             themeKey: state.selectedTheme,
-            customText: state.customText,
             frameStyle: state.selectedFrameStyle,
             targetDPI: 300
         });
 
         state.compositeResultCanvas = outCanvas;
 
-        // Salin ke canvas preview di layar
         compositeCanvas.width = outCanvas.width;
         compositeCanvas.height = outCanvas.height;
         const ctx = compositeCanvas.getContext('2d');
@@ -347,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.drawImage(outCanvas, 0, 0);
     }
 
-    // Filter choices
+    // Filter Choice Listener (8 Filter Baru Transformatif)
     document.querySelectorAll('.filter-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-choice').forEach(b => b.classList.remove('active'));
@@ -357,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Theme swatches
+    // Theme Choice Listener (24 Pilihan Warna Bingkai Studio)
     document.querySelectorAll('.theme-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.theme-choice').forEach(b => b.classList.remove('active'));
@@ -367,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Frame style (Solid / Rounded)
+    // Frame Style Listener (6 Gaya Sudut Inovatif)
     document.querySelectorAll('.framestyle-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.framestyle-choice').forEach(b => b.classList.remove('active'));
@@ -377,21 +420,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Custom watermark text
-    inputCustomText.addEventListener('input', (e) => {
-        state.customText = e.target.value.trim() || 'QXUAN PHOTOBOOTH';
-        renderStudioComposite();
-    });
-
-    // Foto Ulang (Retake)
-    document.getElementById('btn-retake').addEventListener('click', async () => {
-        if (confirm('Ulangi sesi foto dari awal? Foto saat ini tidak akan disimpan.')) {
-            setStep(2);
-            state.capturedFrames = [];
-            state.currentCaptureIdx = 0;
-            updateCaptureBadge();
-            await cameraEngine.startCamera(state.facingMode);
-        }
+    // Foto Ulang (Retake dengan Popup Modal)
+    document.getElementById('btn-retake').addEventListener('click', () => {
+        showModal({
+            title: 'Ulangi Sesi Foto?',
+            message: 'Seluruh jepretan foto di sesi ini akan dihapus dan kamera akan dinyalakan kembali dari foto pertama.',
+            type: 'warning',
+            showCancel: true,
+            confirmText: 'Ya, Ulangi Foto',
+            cancelText: 'Batal',
+            onConfirm: async () => {
+                setStep(2);
+                state.capturedFrames = [];
+                state.currentCaptureIdx = 0;
+                updateCaptureBadge();
+                await cameraEngine.startCamera(state.facingMode);
+            }
+        });
     });
 
     // Lanjut ke Pembayaran QRIS
@@ -401,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------------------------------------------
-    // 8. STEP 4: MIDTRANS DYNAMIC QRIS GATEWAY
+    // 9. STEP 4: MIDTRANS DYNAMIC QRIS GATEWAY
     // -------------------------------------------------------------
     async function initMidtransQRIS() {
         qrisContainer.innerHTML = `
@@ -412,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         try {
-            const resp = await fetch('api/create_payment.php', {
+            const resp = await fetch('api/create_payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -429,14 +474,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayOrderId.textContent = state.orderId;
                 priceDisplay.textContent = `Rp ${Number(res.data.amount).toLocaleString('id-ID')}`;
 
-                // Tampilkan QR Code (Prioritas: SVG dari qr_string atau Image URL)
                 renderQRISCode(res.data);
-
-                // Mulai polling status pembayaran
                 startPaymentPolling(state.orderId);
             } else {
                 qrisContainer.innerHTML = `
-                    <div class="text-center p-4 text-red-500 text-xs">
+                    <div class="text-center p-4 text-rose-500 text-xs">
                         Gagal membuat QRIS: ${res.message || 'Kesalahan Server'}
                     </div>
                 `;
@@ -444,8 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('[Payment Error]', err);
             qrisContainer.innerHTML = `
-                <div class="text-center p-4 text-red-500 text-xs">
-                    Gagal menghubungi backend API. Periksa koneksi PHP server.
+                <div class="text-center p-4 text-rose-500 text-xs">
+                    Gagal menghubungi backend API. Periksa koneksi server.
                 </div>
             `;
         }
@@ -473,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.pollingInterval = setInterval(async () => {
             try {
-                const resp = await fetch(`api/check_status.php?order_id=${encodeURIComponent(orderId)}`);
+                const resp = await fetch(`api/check_status?order_id=${encodeURIComponent(orderId)}`);
                 const res = await resp.json();
 
                 if (res.success && res.data && res.data.is_paid) {
@@ -491,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-simulate-payment').addEventListener('click', async () => {
         if (!state.orderId) return;
         try {
-            const resp = await fetch('api/mock_pay.php', {
+            const resp = await fetch('api/mock_pay', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ order_id: state.orderId })
@@ -500,9 +542,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.success) {
                 if (state.pollingInterval) clearInterval(state.pollingInterval);
                 state.isPaid = true;
-                handlePaymentSuccess();
+                
+                showModal({
+                    title: 'Pembayaran Terverifikasi!',
+                    message: 'Simulasi pembayaran sukses berhasil diaktifkan. Tombol Cetak dan Download HD telah dibuka.',
+                    type: 'success',
+                    confirmText: 'Buka Foto Saya',
+                    onConfirm: () => {
+                        handlePaymentSuccess();
+                    }
+                });
             } else {
-                alert('Gagal simulasi: ' + res.message);
+                showModal({
+                    title: 'Simulasi Gagal',
+                    message: res.message || 'Tidak dapat memproses simulasi.',
+                    type: 'warning'
+                });
             }
         } catch (err) {
             console.error('[Simulate Error]', err);
@@ -510,16 +565,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------------------------------------------
-    // 9. STEP 5: PROSES SETELAH BAYAR (PRINT & EXPORT HD)
+    // 10. STEP 5: PROSES SETELAH BAYAR (PRINT & EXPORT HD)
     // -------------------------------------------------------------
     async function handlePaymentSuccess() {
         setStep(5);
 
-        // Siapkan gambar untuk window.print()
         const hdDataUrl = state.compositeResultCanvas.toDataURL('image/png');
         printImageEl.src = hdDataUrl;
 
-        // Unggah otomatis ke temporary cloud storage (dengan TTL 24 jam)
         uploadTemporaryCloud(hdDataUrl);
     }
 
@@ -532,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         try {
-            const resp = await fetch('api/upload_temp.php', {
+            const resp = await fetch('api/upload_temp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -546,7 +599,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.success && res.data && res.data.download_url) {
                 state.tempDownloadUrl = res.data.download_url;
 
-                // Tampilkan QR Code untuk Mobile Scan
                 if (window.QRCodeGenerator) {
                     const qrSvg = window.QRCodeGenerator.renderSVG(state.tempDownloadUrl, 120);
                     mobileQrContainer.innerHTML = qrSvg;
@@ -554,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     mobileQrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(state.tempDownloadUrl)}" class="w-28 h-28 object-contain">`;
                 }
             } else {
-                mobileQrContainer.innerHTML = `<span class="text-[9px] text-red-500 text-center px-1">Gagal upload cloud</span>`;
+                mobileQrContainer.innerHTML = `<span class="text-[9px] text-rose-500 text-center px-1">Gagal upload cloud</span>`;
             }
         } catch (err) {
             console.error('[Cloud Upload Error]', err);
@@ -589,15 +641,23 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
     }
 
-    // Reset Selesai Sesi Baru
+    // Reset Selesai Sesi Baru (Revisi 1: Muncul Popup Modal Elegan)
     document.getElementById('btn-new-session').addEventListener('click', () => {
-        if (confirm('Selesaikan sesi dan kembali ke menu awal untuk pelanggan berikutnya?')) {
-            window.location.reload();
-        }
+        showModal({
+            title: 'Selesaikan & Mulai Sesi Baru?',
+            message: 'Sesi foto ini akan ditutup dan bilik foto akan direset untuk pelanggan berikutnya. Pastikan Anda sudah mengunduh atau mencetak foto Anda.',
+            type: 'confirm',
+            showCancel: true,
+            confirmText: 'Ya, Selesaikan',
+            cancelText: 'Kembali',
+            onConfirm: () => {
+                window.location.reload();
+            }
+        });
     });
 
     // -------------------------------------------------------------
-    // 10. FULLSCREEN KIOSK MODE TOGGLE
+    // 11. FULLSCREEN KIOSK MODE TOGGLE
     // -------------------------------------------------------------
     const btnFullscreen = document.getElementById('btn-fullscreen');
     btnFullscreen.addEventListener('click', () => {
@@ -610,4 +670,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-

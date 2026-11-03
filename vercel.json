@@ -8,6 +8,17 @@
     { "source": "/api/upload_temp.php", "destination": "/api/upload_temp" },
     { "source": "/api/cron_cleanup.php", "destination": "/api/cron_cleanup" }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron_cleanup",
@@ -15,4 +26,3 @@
     }
   ]
 }
-

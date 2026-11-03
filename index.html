@@ -56,7 +56,7 @@
 
             <!-- Stepper Progress Dots (Desktop/Tablet) -->
             <div class="hidden md:flex items-center space-x-2 text-xs font-medium text-studio-400">
-                <span id="step-dot-1" class="step-badge px-2.5 py-1 rounded-full bg-studio-900 text-white">1. Mode</span>
+                <span id="step-dot-1" class="step-badge px-2.5 py-1 rounded-full bg-studio-900 text-white font-semibold">1. Mode</span>
                 <span class="text-studio-300">→</span>
                 <span id="step-dot-2" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">2. Kamera</span>
                 <span class="text-studio-300">→</span>
@@ -67,7 +67,7 @@
                 <span id="step-dot-5" class="step-badge px-2.5 py-1 rounded-full bg-studio-100 text-studio-600">5. Cetak</span>
             </div>
 
-            <!-- Header Controls: Fullscreen & Reset -->
+            <!-- Header Controls: Fullscreen -->
             <div class="flex items-center space-x-2">
                 <button id="btn-fullscreen" title="Kiosk Fullscreen" class="p-2 rounded-lg border border-studio-200 hover:bg-studio-100 text-studio-700 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
@@ -255,86 +255,130 @@
                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                             Foto Ulang (Retake)
                         </button>
-                        <span class="text-[11px] text-studio-400">Komposisi Siap Cetak (300 DPI)</span>
+                        <span class="text-[11px] text-studio-400 font-mono">Format 300 DPI Ultra HD</span>
                     </div>
                 </div>
 
                 <!-- Right: Customization Controls Panel -->
                 <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-studio-200 shadow-sm space-y-5">
                     <div>
-                        <h3 class="text-base font-bold text-studio-900">Kustomisasi Foto</h3>
-                        <p class="text-xs text-studio-500 mt-0.5">Pilih filter studio visual dan warna bingkai favorit Anda.</p>
+                        <h3 class="text-base font-bold text-studio-900">Kustomisasi Studio</h3>
+                        <p class="text-xs text-studio-500 mt-0.5">Pilih efek visual studio, bingkai bertema, dan gaya sudut foto.</p>
                     </div>
 
-                    <!-- 1. Pilihan Visual Filter -->
+                    <!-- 1. Pilihan Visual Filter (8 Filter Transformatif & Dramatis) -->
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2">
                             Pilihan Visual Filter
                         </label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button type="button" data-filter="normal" class="filter-choice choice-card active p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Normal</span>
-                                <span class="text-[10px] opacity-75">Clean HD</span>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" data-filter="normal" class="filter-choice choice-card active p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Clean</span>
+                                <span class="text-[9px] opacity-75">Studio HD</span>
                             </button>
-                            <button type="button" data-filter="smooth_skin" class="filter-choice choice-card p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Smooth Skin</span>
-                                <span class="text-[10px] opacity-75">Beauty Soft</span>
+                            <button type="button" data-filter="smooth_glow" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Haru Glow</span>
+                                <span class="text-[9px] opacity-75">Soft Bloom</span>
                             </button>
-                            <button type="button" data-filter="vintage" class="filter-choice choice-card p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Vintage</span>
-                                <span class="text-[10px] opacity-75">Warm Retro</span>
+                            <button type="button" data-filter="vintage_film" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Kodak Film</span>
+                                <span class="text-[9px] opacity-75">Warm Amber</span>
                             </button>
-                            <button type="button" data-filter="grayscale" class="filter-choice choice-card p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Monochrome</span>
-                                <span class="text-[10px] opacity-75">B&W Classic</span>
+                            <button type="button" data-filter="noir_contrast" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Noir Mono</span>
+                                <span class="text-[9px] opacity-75">Deep B&W</span>
                             </button>
-                            <button type="button" data-filter="sepia" class="filter-choice choice-card p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Sepia</span>
-                                <span class="text-[10px] opacity-75">Bronze Tone</span>
+                            <button type="button" data-filter="korean_pastel" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">K-Pastel</span>
+                                <span class="text-[9px] opacity-75">Peach Blush</span>
                             </button>
-                            <button type="button" data-filter="cyberpunk" class="filter-choice choice-card p-2.5 rounded-xl text-center">
-                                <span class="text-xs font-semibold block">Contrast</span>
-                                <span class="text-[10px] opacity-75">Punchy Deep</span>
+                            <button type="button" data-filter="cinematic_teal" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Cinematic</span>
+                                <span class="text-[9px] opacity-75">Teal Amber</span>
+                            </button>
+                            <button type="button" data-filter="retro_90s" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">90s Retro</span>
+                                <span class="text-[9px] opacity-75">Disposable</span>
+                            </button>
+                            <button type="button" data-filter="cyber_vivid" class="filter-choice choice-card p-2 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Cyber Vivid</span>
+                                <span class="text-[9px] opacity-75">Punchy Pop</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- 2. Pilihan Warna Bingkai (Frame Theme) -->
+                    <!-- 2. Pilihan Bingkai (24 Variasi Warna Lengkap) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-semibold uppercase tracking-wider text-studio-500">
+                                Pilihan Bingkai
+                            </label>
+                            <span class="text-[10px] text-studio-400">← Geser pilihan warna →</span>
+                        </div>
+
+                        <!-- Horizontal Scroll Palette (24 Warna Studio, Pastel, Vibrant, & Deep Royal) -->
+                        <div class="flex items-center space-x-2.5 overflow-x-auto py-2.5 px-1.5 no-scrollbar scroll-smooth">
+                            <!-- Netral & Pastel Studio -->
+                            <button type="button" data-theme="white" class="theme-choice swatch-btn active bg-white border border-studio-300 shadow-2xs flex-shrink-0" title="Studio White"></button>
+                            <button type="button" data-theme="latte" class="theme-choice swatch-btn bg-[#F5F0EA] border border-stone-300 shadow-2xs flex-shrink-0" title="Warm Latte"></button>
+                            <button type="button" data-theme="cream" class="theme-choice swatch-btn bg-[#FFFDF7] border border-amber-200 shadow-2xs flex-shrink-0" title="Vintage Cream"></button>
+                            <button type="button" data-theme="sand"  class="theme-choice swatch-btn bg-[#EFEBE9] border border-[#D7CCC8] shadow-2xs flex-shrink-0" title="Desert Sand"></button>
+                            <button type="button" data-theme="sage"  class="theme-choice swatch-btn bg-[#E2E8E2] border border-green-200 shadow-2xs flex-shrink-0" title="Soft Sage"></button>
+                            <button type="button" data-theme="blush" class="theme-choice swatch-btn bg-[#F8ECEC] border border-rose-200 shadow-2xs flex-shrink-0" title="Pastel Blush"></button>
+                            <button type="button" data-theme="lavender" class="theme-choice swatch-btn bg-[#EDE7F6] border border-purple-200 shadow-2xs flex-shrink-0" title="Lilac Lavender"></button>
+                            <button type="button" data-theme="sky" class="theme-choice swatch-btn bg-[#E1F5FE] border border-sky-200 shadow-2xs flex-shrink-0" title="Sky Breeze"></button>
+                            <button type="button" data-theme="butter" class="theme-choice swatch-btn bg-[#FFFDE7] border border-yellow-200 shadow-2xs flex-shrink-0" title="Butter Yellow"></button>
+
+                            <!-- Vibrant & Pop -->
+                            <button type="button" data-theme="doraemon_blue" class="theme-choice swatch-btn bg-[#0096E6] border border-[#81D4FA] shadow-2xs flex-shrink-0" title="Bright Cyan Blue"></button>
+                            <button type="button" data-theme="sunny_yellow" class="theme-choice swatch-btn bg-[#FFD54F] border border-[#FFE082] shadow-2xs flex-shrink-0" title="Sunny Yellow"></button>
+                            <button type="button" data-theme="hokage_orange" class="theme-choice swatch-btn bg-[#FF6F00] border border-[#FFA726] shadow-2xs flex-shrink-0" title="Sunset Orange"></button>
+                            <button type="button" data-theme="hero_red" class="theme-choice swatch-btn bg-[#DC2626] border border-[#EF4444] shadow-2xs flex-shrink-0" title="Scarlet Red"></button>
+                            <button type="button" data-theme="anfield_red" class="theme-choice swatch-btn bg-[#C8102E] border border-[#F87171] shadow-2xs flex-shrink-0" title="Crimson Red"></button>
+                            <button type="button" data-theme="garnet_wine" class="theme-choice swatch-btn bg-[#A50044] border border-[#FB7185] shadow-2xs flex-shrink-0" title="Garnet Wine"></button>
+                            <button type="button" data-theme="crimson" class="theme-choice swatch-btn bg-[#881337] border border-rose-900 shadow-2xs flex-shrink-0" title="Crimson Velvet"></button>
+                            <button type="button" data-theme="terracotta" class="theme-choice swatch-btn bg-[#9A3412] border border-orange-800 shadow-2xs flex-shrink-0" title="Warm Terracotta"></button>
+
+                            <!-- Deep, Royal & Gelap Elegan -->
+                            <button type="button" data-theme="royal_blue" class="theme-choice swatch-btn bg-[#004D98] border border-[#3B82F6] shadow-2xs flex-shrink-0" title="Royal Sapphire"></button>
+                            <button type="button" data-theme="chelsea_blue" class="theme-choice swatch-btn bg-[#034694] border border-[#2563EB] shadow-2xs flex-shrink-0" title="Deep Cobalt"></button>
+                            <button type="button" data-theme="classic_navy" class="theme-choice swatch-btn bg-[#0F172A] border border-slate-700 shadow-2xs flex-shrink-0" title="Midnight Navy"></button>
+                            <button type="button" data-theme="emerald_green" class="theme-choice swatch-btn bg-[#047857] border border-[#059669] shadow-2xs flex-shrink-0" title="Emerald Green"></button>
+                            <button type="button" data-theme="forest" class="theme-choice swatch-btn bg-[#14532D] border border-green-800 shadow-2xs flex-shrink-0" title="Forest Pine"></button>
+                            <button type="button" data-theme="black" class="theme-choice swatch-btn bg-[#18181B] border border-zinc-700 shadow-2xs flex-shrink-0" title="Matte Obsidian"></button>
+                            <button type="button" data-theme="pitch_black" class="theme-choice swatch-btn bg-[#09090B] border border-black shadow-2xs flex-shrink-0" title="Jet Black"></button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Variasi Gaya Sudut & Dekorasi Foto (6 Variasi Inovatif) -->
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-2">
-                            Warna Bingkai (Studio Frame)
+                            Gaya Sudut & Dekorasi Foto
                         </label>
-                        <div class="flex items-center space-x-3">
-                            <button type="button" data-theme="white" class="theme-choice swatch-btn active bg-white border-studio-300" title="Studio White"></button>
-                            <button type="button" data-theme="black" class="theme-choice swatch-btn bg-studio-900" title="Matte Obsidian"></button>
-                            <button type="button" data-theme="latte" class="theme-choice swatch-btn bg-[#F5F0EA] border-stone-300" title="Warm Latte"></button>
-                            <button type="button" data-theme="cream" class="theme-choice swatch-btn bg-[#FFFDF7] border-amber-200" title="Vintage Cream"></button>
-                            <button type="button" data-theme="sage"  class="theme-choice swatch-btn bg-[#E2E8E2] border-green-200" title="Soft Sage"></button>
-                            <button type="button" data-theme="blush" class="theme-choice swatch-btn bg-[#F8ECEC] border-rose-200" title="Pastel Blush"></button>
-                        </div>
-                    </div>
-
-                    <!-- 3. Teks Watermark & Caption Kustom -->
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-1.5">
-                            Teks Watermark Studio
-                        </label>
-                        <input type="text" id="input-custom-text" value="QXUAN PHOTOBOOTH" maxlength="28" 
-                               class="w-full px-3 py-2 rounded-xl border border-studio-200 text-xs sm:text-sm font-medium focus:outline-none focus:border-studio-900 transition">
-                        <p class="text-[10px] text-studio-400 mt-1">Dicetak elegan di bagian bawah bingkai.</p>
-                    </div>
-
-                    <!-- 4. Gaya Sudut Bingkai -->
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-studio-500 mb-1.5">
-                            Gaya Sudut Foto
-                        </label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" data-framestyle="solid" class="framestyle-choice choice-card active p-2 rounded-xl text-center text-xs font-semibold">
-                                Siku Tajam (Classic)
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" data-framestyle="solid" class="framestyle-choice choice-card active p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Siku Tajam</span>
+                                <span class="text-[9px] opacity-75">Classic Studio</span>
                             </button>
-                            <button type="button" data-framestyle="rounded" class="framestyle-choice choice-card p-2 rounded-xl text-center text-xs font-semibold">
-                                Sudut Melengkung (Rounded)
+                            <button type="button" data-framestyle="rounded" class="framestyle-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Curved</span>
+                                <span class="text-[9px] opacity-75">Haru Soft</span>
+                            </button>
+                            <button type="button" data-framestyle="washi_tape" class="framestyle-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Polaroid Tape</span>
+                                <span class="text-[9px] opacity-75">Solasi Sudut</span>
+                            </button>
+                            <button type="button" data-framestyle="film_strip" class="framestyle-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Klise 35mm</span>
+                                <span class="text-[9px] opacity-75">Film Perforated</span>
+                            </button>
+                            <button type="button" data-framestyle="double_border" class="framestyle-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">Garis Ganda</span>
+                                <span class="text-[9px] opacity-75">Luxury Border</span>
+                            </button>
+                            <button type="button" data-framestyle="floating_shadow" class="framestyle-choice choice-card p-2.5 rounded-xl text-center">
+                                <span class="text-xs font-semibold block">3D Floating</span>
+                                <span class="text-[9px] opacity-75">Bayangan Timbul</span>
                             </button>
                         </div>
                     </div>
@@ -484,7 +528,7 @@
                     </div>
                 </div>
 
-                <!-- Reset Sesi Baru -->
+                <!-- Reset Sesi Baru (Akan memicu Modal Popup Sesuai Revisi 1) -->
                 <div class="pt-4 text-center">
                     <button id="btn-new-session" class="btn-touch px-6 py-2.5 rounded-xl border border-studio-200 hover:border-studio-900 text-xs font-semibold text-studio-700 transition">
                         Selesaikan & Mulai Sesi Baru
@@ -494,6 +538,30 @@
         </section>
 
     </main>
+
+    <!-- ======================================================================
+         STUDIO MODAL POPUP (Revisi 1: Semua Notifikasi & Konfirmasi Menggunakan Popup)
+         ====================================================================== -->
+    <div id="studio-modal-container" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200">
+        <div id="studio-modal-box" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-studio-200 text-center transform scale-95 transition-all duration-200">
+            <!-- Modal Icon -->
+            <div id="modal-icon-wrap" class="w-12 h-12 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-studio-100 text-studio-900">
+                <svg id="modal-icon-svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <!-- Modal Title & Body -->
+            <h4 id="modal-title" class="text-base font-bold text-studio-900 tracking-tight">Judul Notifikasi</h4>
+            <p id="modal-message" class="text-xs text-studio-500 mt-1.5 leading-relaxed">Pesan informasi modal...</p>
+            <!-- Modal Action Buttons -->
+            <div id="modal-actions" class="mt-6 flex items-center justify-center space-x-2.5">
+                <button type="button" id="modal-btn-cancel" class="btn-touch flex-1 py-2.5 px-4 rounded-xl border border-studio-200 hover:bg-studio-100 text-xs font-semibold text-studio-700 transition">
+                    Batal
+                </button>
+                <button type="button" id="modal-btn-confirm" class="btn-touch flex-1 py-2.5 px-4 rounded-xl bg-studio-900 hover:bg-studio-800 text-white text-xs font-semibold transition shadow-sm">
+                    Konfirmasi
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ======================================================================
          DEDICATED PRINT CONTAINER (Digunakan oleh window.print())
@@ -511,4 +579,3 @@
     <script src="assets/js/app.js"></script>
 </body>
 </html>
-

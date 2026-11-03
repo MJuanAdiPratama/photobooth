@@ -1,7 +1,7 @@
 /**
  * Vercel Serverless Function: Upload Photo to Supabase Storage (TTL 24 Jam)
  * Endpoint: POST /api/upload_temp
- * Dilengkapi fallback lokal otomatis saat pengujian di komputer lokal.
+ * Hardened with Input Validation, Size Limits, and Path Sanitation
  */
 
 const fs = require('fs');
@@ -11,11 +11,14 @@ const { supabase, isSupabaseConfigured, saveLocalTx } = require('./supabase');
 
 const BUCKET_NAME = process.env.SUPABASE_BUCKET || 'photobooth-temp';
 const LOCAL_STORAGE_DIR = path.join(__dirname, '..', 'storage', 'temp_photos');
+const MAX_BASE64_LENGTH = 28 * 1024 * 1024; // Maksimum 28MB base64 (~20MB binary)
+const ALLOWED_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -28,21 +31,42 @@ module.exports = async (req, res) => {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const imageData = body.image_data;
     const orderId = body.order_id;
-    let format = (body.format || 'png').toLowerCase();
+    let format = String(body.format || 'png').toLowerCase();
 
-    if (!imageData) {
+    // 1. Validasi Keberadaan Data
+    if (!imageData || typeof imageData !== 'string') {
         return res.status(400).json({ success: false, message: 'Data gambar (base64) wajib disertakan.' });
     }
 
-    // Ekstrak binary dari data URL base64
+    // 2. Proteksi DoS Ukuran Berkas
+    if (imageData.length > MAX_BASE64_LENGTH) {
+        return res.status(413).json({ success: false, message: 'Ukuran file gambar melampaui batas maksimum (20 MB).' });
+    }
+
+    // 3. Validasi Order ID
+    if (orderId && !/^[A-Za-z0-9\-_]{10,64}$/.test(orderId)) {
+        return res.status(400).json({ success: false, message: 'Format order_id tidak valid.' });
+    }
+
+    // 4. Ekstrak dan Sanitasi Binary Data
     let base64Clean = imageData;
     const matches = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
     if (matches) {
-        format = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+        format = matches[1] === 'jpeg' ? 'jpg' : matches[1].toLowerCase();
         base64Clean = matches[2];
     }
 
-    const buffer = Buffer.from(base64Clean, 'base64');
+    if (!ALLOWED_EXTS.includes(format)) {
+        format = 'png';
+    }
+
+    let buffer;
+    try {
+        buffer = Buffer.from(base64Clean, 'base64');
+    } catch {
+        return res.status(400).json({ success: false, message: 'Gagal mendekode gambar base64.' });
+    }
+
     const token = crypto.randomBytes(8).toString('hex');
     const nowSec = Math.floor(Date.now() / 1000);
     const fileName = `QXUAN_${token}_${nowSec}.${format}`;
@@ -51,10 +75,9 @@ module.exports = async (req, res) => {
     let publicUrl = '';
     let storageDriver = 'local_temp';
 
-    // Prioritas 1: Unggah ke Supabase Storage jika kredensial sudah diatur
+    // Prioritas 1: Unggah ke Supabase Storage
     if (isSupabaseConfigured()) {
         try {
-            // Jalankan pembersihan file > 24 jam di background
             supabase.rpc('delete_expired_photobooth_photos').catch(() => {});
 
             const { data: uploadData, error: uploadErr } = await supabase.storage
@@ -73,7 +96,6 @@ module.exports = async (req, res) => {
                 publicUrl = urlData.publicUrl;
                 storageDriver = 'supabase';
 
-                // Simpan link foto di tabel transactions Supabase
                 if (orderId) {
                     await supabase
                         .from('transactions')
@@ -91,7 +113,7 @@ module.exports = async (req, res) => {
         }
     }
 
-    // Prioritas 2 / Fallback Lokal: Simpan ke storage/temp_photos untuk preview lokal
+    // Prioritas 2: Fallback Lokal untuk testing lokal
     if (!publicUrl) {
         try {
             if (!fs.existsSync(LOCAL_STORAGE_DIR)) {
@@ -109,7 +131,6 @@ module.exports = async (req, res) => {
         }
     }
 
-    // Simpan di local cache
     if (orderId) {
         saveLocalTx(orderId, { photo_url: publicUrl });
     }
