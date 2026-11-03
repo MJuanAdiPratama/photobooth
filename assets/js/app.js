@@ -654,6 +654,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        const qrActionWrap = document.getElementById('qr-link-action-wrap');
+        if (qrActionWrap) qrActionWrap.innerHTML = '';
+
         try {
             const resp = await fetch('api/upload_temp', {
                 method: 'POST',
@@ -665,15 +668,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            const res = await resp.json();
+            const res = await resp.json().catch(() => ({}));
             if (res.success && res.data && res.data.download_url) {
                 state.tempDownloadUrl = res.data.download_url;
 
-                if (window.QRCodeGenerator) {
-                    const qrSvg = window.QRCodeGenerator.renderSVG(state.tempDownloadUrl, 120);
-                    mobileQrContainer.innerHTML = qrSvg;
-                } else {
-                    mobileQrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(state.tempDownloadUrl)}" class="w-28 h-28 object-contain">`;
+                // Tampilkan QR Code Tajam 130x130
+                mobileQrContainer.innerHTML = `
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=2&data=${encodeURIComponent(state.tempDownloadUrl)}" 
+                         alt="QR Download Foto" 
+                         class="w-28 h-28 object-contain rounded-lg shadow-2xs">
+                `;
+
+                // Tampilkan tombol tes buka tautan langsung
+                if (qrActionWrap) {
+                    qrActionWrap.innerHTML = `
+                        <a href="${state.tempDownloadUrl}" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1 rounded-lg border border-emerald-200 transition shadow-2xs">
+                            🔗 Buka Tautan Foto di Tab Baru →
+                        </a>
+                    `;
                 }
             } else {
                 mobileQrContainer.innerHTML = `<span class="text-[9px] text-rose-500 text-center px-1">Gagal upload cloud</span>`;
@@ -684,9 +697,84 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Aksi Print
+    // Fungsi Cetak Foto Khusus Kertas Foto (Tanpa Lebih Kertas Putih)
+    function printDirectPhoto(dataUrl) {
+        // Buat iframe tersembunyi agar mencetak HANYA foto tanpa header URL browser & tanpa kelebihan kertas
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Cetak Foto - Qxuan Photobooth</title>
+                <style>
+                    @page {
+                        size: auto;
+                        margin: 0mm;
+                    }
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff;
+                        overflow: hidden;
+                    }
+                    .photo-container {
+                        width: 100vw;
+                        height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    img {
+                        max-width: 100%;
+                        max-height: 100%;
+                        width: auto;
+                        height: auto;
+                        object-fit: contain;
+                        display: block;
+                        margin: auto;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="photo-container">
+                    <img src="${dataUrl}" onload="setTimeout(() => { window.focus(); window.print(); }, 200);" />
+                </div>
+            </body>
+            </html>
+        `);
+        doc.close();
+
+        // Bersihkan iframe setelah print dialog selesai
+        setTimeout(() => {
+            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 5000);
+    }
+
+    // Aksi Print Kertas Foto Bersih
     document.getElementById('btn-print-action').addEventListener('click', () => {
-        window.print();
+        const hdDataUrl = state.compositeResultCanvas ? state.compositeResultCanvas.toDataURL('image/png') : printImageEl.src;
+        if (hdDataUrl) {
+            printDirectPhoto(hdDataUrl);
+        } else {
+            window.print();
+        }
     });
 
     // Aksi Download Langsung

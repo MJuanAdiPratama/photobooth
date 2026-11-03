@@ -198,43 +198,55 @@ body {
    Sesuai spesifikasi untuk kertas foto 4R (4x6 in) atau strip (2x6 in)
    ========================================================================== */
 @page {
-  size: 4in 6in;
-  margin: 0;
+  size: auto;
+  margin: 0mm;
 }
 
 @media print {
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #FFFFFF !important;
-    width: 100% !important;
-    height: 100% !important;
+  *, *:before, *:after {
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
-  /* Sembunyikan seluruh UI Photobooth saat mencetak */
-  body > * {
+  html, body {
+    margin: 0mm !important;
+    padding: 0mm !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    overflow: hidden !important;
+  }
+
+  /* Sembunyikan seluruh UI Photobooth saat dialog cetak aktif */
+  body > *:not(#print-target-wrapper) {
     display: none !important;
   }
 
-  /* Tampilkan hanya kontainer print */
+  /* Tampilkan kontainer foto yang pas di kertas tanpa border lebihan */
   #print-target-wrapper {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     position: fixed !important;
-    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: #FFFFFF !important;
+    background: transparent !important;
     margin: 0 !important;
     padding: 0 !important;
-    z-index: 99999 !important;
+    z-index: 999999 !important;
   }
 
   #print-target-wrapper img {
     max-width: 100% !important;
     max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
     object-fit: contain !important;
+    margin: auto !important;
+    display: block !important;
     image-rendering: -webkit-optimize-contrast;
   }
 }
