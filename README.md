@@ -4,6 +4,8 @@ Aplikasi photobooth berbasis web yang modern, ringan, dan responsif. Dapat digun
 
 Dilengkapi dengan kamera otomatis, kustomisasi bingkai & filter foto, pembayaran QRIS, serta fitur cetak dan unduh foto.
 
+🌐 **Website:** [https://photobooth-qxuan3.vercel.app/](https://photobooth-qxuan3.vercel.app/)
+
 ---
 
 ## 🔄 Alur Penggunaan
@@ -27,23 +29,10 @@ Sistem bekerja dalam 4 langkah mudah:
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🌐 Live Demo
 
-### 1. Jalankan di Lokal (Komputer)
-```bash
-# Pasang dependensi
-npm install
-
-# Jalankan server
-npm start
-```
-Buka browser di `http://localhost:8000`.
-
-### 2. Pengaturan Lingkungan (.env)
-Salin `.env.example` menjadi `.env` lalu isi konfigurasi Supabase dan Midtrans.
-
-### 3. Deploy ke Vercel
-Hubungkan repositori ini ke [Vercel](https://vercel.com), tambahkan environment variables di pengaturan proyek, dan aplikasi siap digunakan.
+Aplikasi dapat diakses dan digunakan langsung melalui tautan berikut:  
+👉 **[https://photobooth-qxuan3.vercel.app/](https://photobooth-qxuan3.vercel.app/)**
 
 ---
 
