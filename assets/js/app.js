@@ -1,9 +1,10 @@
 /**
- * Qxuan Photobooth - Master Application Controller (Expanded Edition)
- * Mengatur alur langkah demi langkah (Stepper UI), Web Audio API synth effects,
- * sistem popup modal & notifikasi kustom (tanpa alert/confirm bawaan browser),
- * integrasi kamera WebRTC 4K, 8 live filter dramatis, tema karakter & klub sepakbola,
- * serta integrasi Midtrans QRIS & Supabase Storage.
+ * Qxuan Photobooth - Master Application Controller
+ * Standarisasi 4 Langkah Alur Kerja:
+ * 1. Tata Letak & Tema Bingkai
+ * 2. Ambil Foto (dengan Hitung Mundur)
+ * 3. Edit (Efek Warna, Tema Bingkai, Teks, Stiker)
+ * 4. Pembayaran QRIS & Unduh/Cetak
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,26 +14,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         currentStep: 1,
         layoutMode: 'single', // 'single', 'collage_2x1', 'collage_2x2', 'collage_3x1'
-        aspectRatio: '4:3',   // '1:1', '4:3', '16:9'
-        orientation: 'portrait', // 'portrait' (tegak) atau 'landscape' (mendatar)
-        timerSeconds: 3,      // 0, 3, 5, 10
-        facingMode: 'user',   // 'user' atau 'environment'
-        
-        capturedFrames: [],   // Array Canvas mentah yang sudah dipra-proses
+        aspectRatio: '4:3',
+        orientation: 'portrait',
+        timerSeconds: 3,
+        facingMode: 'user',
+
+        capturedFrames: [],
         targetCount: 1,
         currentCaptureIdx: 0,
         isCapturingSession: false,
-        
+
+        selectedCategory: 'polos', // 'polos', 'polaroid', 'bioskop', 'batik', 'karakter'
+        selectedTheme: 'polos_putih',
         selectedFilter: 'normal',
-        selectedTheme: 'white',
-        selectedFrameStyle: 'solid',
+        customText: '',
+        stickers: [],
 
         orderId: null,
         amount: 10000,
         isPaid: false,
         pollingInterval: null,
-        
-        tempDownloadUrl: null,
         compositeResultCanvas: null
     };
 
@@ -43,16 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
         step1: document.getElementById('view-step-1'),
         step2: document.getElementById('view-step-2'),
         step3: document.getElementById('view-step-3'),
-        step4: document.getElementById('view-step-4'),
-        step5: document.getElementById('view-step-5'),
+        step4: document.getElementById('view-step-4')
     };
 
     const stepDots = {
         1: document.getElementById('step-dot-1'),
         2: document.getElementById('step-dot-2'),
         3: document.getElementById('step-dot-3'),
-        4: document.getElementById('step-dot-4'),
-        5: document.getElementById('step-dot-5'),
+        4: document.getElementById('step-dot-4')
     };
 
     const videoEl           = document.getElementById('camera-video');
@@ -66,18 +65,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const compositeCanvas   = document.getElementById('composite-canvas');
 
+    const paymentGateBox    = document.getElementById('payment-gate-box');
+    const postPaymentBox    = document.getElementById('post-payment-box');
     const qrisContainer     = document.getElementById('qris-image-container');
     const displayOrderId    = document.getElementById('display-order-id');
     const priceDisplay      = document.getElementById('price-display');
 
     const printImageEl      = document.getElementById('print-image');
 
-    // Inisialisasi Engine
+    // Engine
     const cameraEngine = new CameraManager(videoEl);
     const canvasEngine = new CanvasEngine();
 
     // -------------------------------------------------------------
-    // 3. SISTEM POPUP MODAL NOTIFIKASI & KONFIRMASI (Revisi 1)
+    // 3. SISTEM POPUP MODAL NOTIFIKASI & KONFIRMASI
     // -------------------------------------------------------------
     function showModal({
         title = 'Informasi',
@@ -108,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCancel.classList.add('hidden');
         }
 
-        // Penataan ikon & tombol berdasarkan jenis tipe
         if (type === 'danger' || type === 'warning') {
             iconWrap.className = 'w-12 h-12 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-amber-100 text-amber-700';
             iconWrap.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 4. WEB AUDIO SYNTHESIZER (Tanpa file audio eksternal)
+    // 4. WEB AUDIO SYNTHESIZER
     // -------------------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
@@ -155,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return audioCtx;
     }
 
-    // Buka kunci Web Audio otomatis pada sentuhan pertama di smartphone
     window.addEventListener('touchstart', () => { getAudioContext(); }, { once: true, passive: true });
     window.addEventListener('click', () => { getAudioContext(); }, { once: true, passive: true });
 
@@ -199,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 5. STEPPER NAVIGATION CONTROLLER
+    // 5. 4-STEP STEPPER CONTROLLER
     // -------------------------------------------------------------
     function setStep(stepNumber) {
         state.currentStep = stepNumber;
@@ -213,13 +212,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Update indikator stepper untuk mobile
+        // Mobile Badge
         const mobileBadge = document.getElementById('mobile-step-badge');
         if (mobileBadge) {
-            const stepLabels = ['', '1/5: Mode', '2/5: Kamera', '3/5: Editor', '4/5: Bayar', '5/5: Selesai'];
-            mobileBadge.textContent = stepLabels[stepNumber] || `Langkah ${stepNumber}/5`;
+            const stepLabels = ['', '1/4: Tata Letak', '2/4: Ambil Foto', '3/4: Edit', '4/4: Selesai'];
+            mobileBadge.textContent = stepLabels[stepNumber] || `Langkah ${stepNumber}/4`;
         }
 
+        // Stepper Dots (Desktop)
         Object.keys(stepDots).forEach(numStr => {
             const num = parseInt(numStr);
             const dot = stepDots[num];
@@ -237,14 +237,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 6. STEP 1: PILIHAN MODE & SELEKSI
+    // 6. LANGKAH 1: TATA LETAK & TEMA BINGKAI
     // -------------------------------------------------------------
+    // Pilihan Tata Letak
     document.querySelectorAll('.layout-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.layout-choice').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             state.layoutMode = btn.dataset.layout;
-            
+
             if (state.layoutMode === 'single') state.targetCount = 1;
             else if (state.layoutMode === 'collage_2x1') state.targetCount = 2;
             else if (state.layoutMode === 'collage_2x2') state.targetCount = 4;
@@ -252,24 +253,90 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Helper: Update Rasio Aspek Label & Button
+    // Pilihan Kategori Tema Bingkai di Step 1
+    document.querySelectorAll('.theme-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const category = tab.dataset.category;
+            state.selectedCategory = category;
+
+            document.querySelectorAll('.theme-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Tampilkan subpanel terkait
+            document.querySelectorAll('.theme-subpanel').forEach(p => p.classList.add('hidden'));
+            const subpanel = document.getElementById(`subpanel-theme-${category}`);
+            if (subpanel) subpanel.classList.remove('hidden');
+
+            // Otomatis pilih item pertama di kategori tersebut
+            const firstChoice = subpanel ? subpanel.querySelector('.theme-choice') : null;
+            if (firstChoice) {
+                selectTheme(firstChoice.dataset.theme);
+            }
+        });
+    });
+
+    // Pilihan Kategori Tema Bingkai di Step 3 (Layar Edit)
+    document.querySelectorAll('.edit-theme-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const category = tab.dataset.editCategory;
+            state.selectedCategory = category;
+
+            document.querySelectorAll('.edit-theme-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.querySelectorAll('.edit-theme-subpanel').forEach(p => p.classList.add('hidden'));
+            const subpanel = document.getElementById(`edit-subpanel-${category}`);
+            if (subpanel) subpanel.classList.remove('hidden');
+
+            const firstChoice = subpanel ? subpanel.querySelector('.theme-choice') : null;
+            if (firstChoice) {
+                selectTheme(firstChoice.dataset.theme);
+            }
+        });
+    });
+
+    // Listener Global Pemilihan Tema Bingkai
+    document.querySelectorAll('.theme-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectTheme(btn.dataset.theme);
+        });
+    });
+
+    function selectTheme(themeKey) {
+        state.selectedTheme = themeKey;
+
+        // Sinkronkan status aktif tombol di Step 1 dan Step 3
+        document.querySelectorAll('.theme-choice').forEach(b => {
+            if (b.dataset.theme === themeKey) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+
+        // Jika berada di langkah Edit, re-render kanvas secara instan
+        if (state.currentStep === 3) {
+            renderStudioComposite();
+        }
+    }
+
+    // Orientasi Kamera (Potret / Lanskap)
     function updateRatioLabels() {
         const labelClassic = document.getElementById('label-ratio-classic');
         const labelWide = document.getElementById('label-ratio-wide');
         const toggleBtnLabel = document.getElementById('orientation-toggle-label');
 
         if (state.orientation === 'portrait') {
-            if (labelClassic) labelClassic.textContent = '3 : 4';
-            if (labelWide) labelWide.textContent = '9 : 16';
-            if (toggleBtnLabel) toggleBtnLabel.textContent = '📱 Potret';
+            if (labelClassic) labelClassic.textContent = '3:4';
+            if (labelWide) labelWide.textContent = '9:16';
+            if (toggleBtnLabel) toggleBtnLabel.textContent = 'Potret';
         } else {
-            if (labelClassic) labelClassic.textContent = '4 : 3';
-            if (labelWide) labelWide.textContent = '16 : 9';
-            if (toggleBtnLabel) toggleBtnLabel.textContent = '💻 Lanskap';
+            if (labelClassic) labelClassic.textContent = '4:3';
+            if (labelWide) labelWide.textContent = '16:9';
+            if (toggleBtnLabel) toggleBtnLabel.textContent = 'Lanskap';
         }
     }
 
-    // Helper: Update Viewfinder Aspect Ratio & Max-Width
     function updateViewfinderDimensions() {
         if (!viewfinderWrap) return;
         const baseClass = 'video-viewport w-full rounded-2xl border border-studio-800 shadow-xl overflow-hidden relative bg-black max-h-[68vh] transition-all duration-300';
@@ -277,14 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.aspectRatio === '1:1') {
             viewfinderWrap.className = `${baseClass} aspect-square max-w-sm sm:max-w-md mx-auto`;
         } else if (state.orientation === 'portrait') {
-            // Mode Potret (Tegak)
             if (state.aspectRatio === '16:9') {
                 viewfinderWrap.className = `${baseClass} aspect-[9/16] max-w-xs sm:max-w-sm mx-auto`;
             } else {
                 viewfinderWrap.className = `${baseClass} aspect-[3/4] max-w-sm sm:max-w-md mx-auto`;
             }
         } else {
-            // Mode Lanskap (Mendatar)
             if (state.aspectRatio === '16:9') {
                 viewfinderWrap.className = `${baseClass} aspect-[16/9] max-w-3xl mx-auto`;
             } else {
@@ -293,7 +358,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Orientation Choice Listener (Potret vs Lanskap)
     document.querySelectorAll('.orientation-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.orientation-choice').forEach(b => b.classList.remove('active'));
@@ -317,10 +381,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.timer-choice').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             state.timerSeconds = parseInt(btn.dataset.timer, 10);
-            timerDisplayBadge.textContent = state.timerSeconds > 0 ? `${state.timerSeconds}s` : 'Off';
+            timerDisplayBadge.textContent = state.timerSeconds > 0 ? `${state.timerSeconds}s` : 'Instan';
         });
     });
 
+    // Tombol Mulai Berfoto -> Pindah ke Step 2
     document.getElementById('btn-start-session').addEventListener('click', async () => {
         setStep(2);
         updateRatioLabels();
@@ -332,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const camResult = await cameraEngine.startCamera(state.facingMode);
         if (camResult.success) {
-            resLabel.textContent = `Resolusi: ${camResult.resolution.width}x${camResult.resolution.height}`;
+            resLabel.textContent = `Kamera: ${camResult.resolution.width}x${camResult.resolution.height}`;
         } else {
             showModal({
                 title: 'Akses Kamera Terkendala',
@@ -342,6 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    // -------------------------------------------------------------
+    // 7. LANGKAH 2: AMBIL FOTO (DENGAN HITUNG MUNDUR)
+    // -------------------------------------------------------------
+    function updateCaptureBadge() {
+        captureBadge.textContent = `Foto ${state.currentCaptureIdx + 1} dari ${state.targetCount}`;
+    }
 
     document.getElementById('btn-back-to-setup').addEventListener('click', () => {
         if (state.capturedFrames.length > 0) {
@@ -365,17 +437,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Toggle Orientasi Cepat di Layar Kamera (Step 2)
     const btnToggleOrientation = document.getElementById('btn-toggle-orientation');
     if (btnToggleOrientation) {
         btnToggleOrientation.addEventListener('click', () => {
             state.orientation = (state.orientation === 'portrait') ? 'landscape' : 'portrait';
-            
-            // Sinkronkan tombol di Step 1
             document.querySelectorAll('.orientation-choice').forEach(b => {
                 b.classList.toggle('active', b.dataset.orientation === state.orientation);
             });
-
             updateRatioLabels();
             updateViewfinderDimensions();
         });
@@ -385,16 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await cameraEngine.switchCamera();
         if (result.success) {
             state.facingMode = result.facingMode;
-            resLabel.textContent = `Resolusi: ${result.resolution.width}x${result.resolution.height}`;
+            resLabel.textContent = `Kamera: ${result.resolution.width}x${result.resolution.height}`;
         }
     });
-
-    // -------------------------------------------------------------
-    // 7. STEP 2: PROSES PENGAMBILAN FOTO
-    // -------------------------------------------------------------
-    function updateCaptureBadge() {
-        captureBadge.textContent = `Foto ${state.currentCaptureIdx + 1} dari ${state.targetCount}`;
-    }
 
     const btnTriggerShutter = document.getElementById('btn-trigger-shutter');
     btnTriggerShutter.addEventListener('click', () => {
@@ -412,7 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
             countdownOverlay.classList.remove('hidden');
             for (let sec = timerDuration; sec > 0; sec--) {
                 countdownNumber.textContent = sec;
-                // Picu animasi scale/opacity yang mulus per detik (GPU-accelerated)
                 countdownNumber.classList.remove('countdown-tick');
                 void countdownNumber.offsetWidth;
                 countdownNumber.classList.add('countdown-tick');
@@ -446,11 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cameraEngine.stopCamera();
             state.isCapturingSession = false;
             btnTriggerShutter.disabled = false;
-            
-            // Bersihkan cache filter untuk sesi baru
-            cachedFilterKey = null;
-            cachedFilteredFrames = [];
-            cachedFramesCount = 0;
 
             setStep(3);
             renderStudioComposite();
@@ -462,31 +517,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------------------------------------------
-    // 8. STEP 3: STUDIO EDITOR & CUSTOMIZATION
+    // 8. LANGKAH 3: EDIT (EFEK WARNA, BINGKAI, TEKS, STIKER)
     // -------------------------------------------------------------
-    let cachedFilteredFrames = [];
-    let cachedFilterKey = null;
-    let cachedFramesCount = 0;
-
     function renderStudioComposite() {
         if (!state.capturedFrames.length) return;
 
-        // Caching pintar: Hindari hitungan piksel ulang saat berganti warna bingkai atau gaya sudut
-        if (cachedFilterKey !== state.selectedFilter || cachedFramesCount !== state.capturedFrames.length) {
-            cachedFilteredFrames = state.capturedFrames.map(frame => {
-                return canvasEngine.applyFilter(frame, state.selectedFilter);
-            });
-            cachedFilterKey = state.selectedFilter;
-            cachedFramesCount = state.capturedFrames.length;
-        }
+        // Terapkan Efek Warna Instagram secara real-time ke setiap foto
+        const filteredFrames = state.capturedFrames.map(frame => {
+            return canvasEngine.applyColorFilter(frame, state.selectedFilter);
+        });
 
-        // Buat kolase HD dengan tema bingkai & gaya sudut terpilih
+        // Kompilasi 4-Layer Kanvas
         const outCanvas = canvasEngine.composeCollage({
-            photoCanvases: cachedFilteredFrames,
+            photoCanvases: filteredFrames,
             layoutMode: state.layoutMode,
             themeKey: state.selectedTheme,
-            frameStyle: state.selectedFrameStyle,
-            targetDPI: 300
+            colorEffectKey: state.selectedFilter,
+            customText: state.customText,
+            stickers: state.stickers
         });
 
         state.compositeResultCanvas = outCanvas;
@@ -498,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.drawImage(outCanvas, 0, 0);
     }
 
-    // Filter Choice Listener (8 Filter Baru Transformatif)
+    // Listener 8 Efek Warna Instagram
     document.querySelectorAll('.filter-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-choice').forEach(b => b.classList.remove('active'));
@@ -508,27 +556,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Theme Choice Listener (24 Pilihan Warna Bingkai Studio)
-    document.querySelectorAll('.theme-choice').forEach(btn => {
+    // Listener Input Teks Kustom
+    const inputCustomText = document.getElementById('input-custom-text');
+    if (inputCustomText) {
+        inputCustomText.addEventListener('input', (e) => {
+            state.customText = e.target.value;
+            renderStudioComposite();
+        });
+    }
+
+    // Listener Tambah Stiker
+    document.querySelectorAll('.sticker-item').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.theme-choice').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.selectedTheme = btn.dataset.theme;
+            const emoji = btn.dataset.emoji;
+            const count = state.stickers.length;
+            const positions = [
+                { relX: 0.15, relY: 0.10 },
+                { relX: 0.85, relY: 0.10 },
+                { relX: 0.15, relY: 0.82 },
+                { relX: 0.85, relY: 0.82 },
+                { relX: 0.50, relY: 0.85 },
+                { relX: 0.50, relY: 0.08 }
+            ];
+            const pos = positions[count % positions.length];
+            state.stickers.push({
+                emoji: emoji,
+                relX: pos.relX,
+                relY: pos.relY,
+                scale: 0.08
+            });
             renderStudioComposite();
         });
     });
 
-    // Frame Style Listener (6 Gaya Sudut Inovatif)
-    document.querySelectorAll('.framestyle-choice').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.framestyle-choice').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.selectedFrameStyle = btn.dataset.framestyle;
+    // Listener Hapus Stiker
+    const btnClearStickers = document.getElementById('btn-clear-stickers');
+    if (btnClearStickers) {
+        btnClearStickers.addEventListener('click', () => {
+            state.stickers = [];
             renderStudioComposite();
         });
-    });
+    }
 
-    // Foto Ulang (Retake dengan Popup Modal)
+    // Tombol Foto Ulang
     document.getElementById('btn-retake').addEventListener('click', () => {
         showModal({
             title: 'Ulangi Foto?',
@@ -538,9 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmText: 'Ya, Ulangi',
             cancelText: 'Batal',
             onConfirm: async () => {
-                cachedFilterKey = null;
-                cachedFilteredFrames = [];
-                cachedFramesCount = 0;
                 setStep(2);
                 state.capturedFrames = [];
                 state.currentCaptureIdx = 0;
@@ -550,14 +617,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Lanjut ke Pembayaran QRIS
+    // Lanjut ke Pembayaran QRIS -> Pindah ke Step 4
     document.getElementById('btn-proceed-payment').addEventListener('click', async () => {
         setStep(4);
+        paymentGateBox.classList.remove('hidden');
+        postPaymentBox.classList.add('hidden');
         await initMidtransQRIS();
     });
 
     // -------------------------------------------------------------
-    // 9. STEP 4: MIDTRANS DYNAMIC QRIS GATEWAY
+    // 9. LANGKAH 4: PEMBAYARAN QRIS & UNDUH / CETAK
     // -------------------------------------------------------------
     async function initMidtransQRIS() {
         qrisContainer.innerHTML = `
@@ -620,7 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Polling status setiap 2.5 detik
     function startPaymentPolling(orderId) {
         if (state.pollingInterval) clearInterval(state.pollingInterval);
 
@@ -640,9 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     }
 
-    // Tombol Simulasi Pembayaran Sukses (Mode Sandbox / Dev Testing)
+    // Simulasi Pembayaran Sukses
     document.getElementById('btn-simulate-payment').addEventListener('click', async () => {
-        // Jika belum ada orderId (misal gagal memuat Midtrans), otomatis buat orderId simulasi
         if (!state.orderId) {
             state.orderId = `QXUAN-SIM-${Date.now()}`;
             if (displayOrderId) displayOrderId.textContent = state.orderId;
@@ -651,10 +718,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const proceedSuccess = () => {
             if (state.pollingInterval) clearInterval(state.pollingInterval);
             state.isPaid = true;
-            
+
             showModal({
                 title: 'Pembayaran Terverifikasi!',
-                message: 'Simulasi pembayaran sukses berhasil diaktifkan. Tombol Cetak dan Download HD telah dibuka.',
+                message: 'Simulasi pembayaran sukses berhasil diaktifkan. Tombol Cetak dan Unduh Foto telah dibuka.',
                 type: 'success',
                 confirmText: 'Buka Foto Saya',
                 onConfirm: () => {
@@ -670,32 +737,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ order_id: state.orderId })
             });
             const res = await resp.json().catch(() => ({}));
-            
+
             if (res.success) {
                 proceedSuccess();
             } else {
-                console.warn('[Mock Pay Response, applying direct fallback]', res);
                 proceedSuccess();
             }
         } catch (err) {
-            console.warn('[Simulate Error, applying client-side fallback]', err);
             proceedSuccess();
         }
     });
 
-    // -------------------------------------------------------------
-    // 10. STEP 5: PROSES SETELAH BAYAR (PRINT & EXPORT HD)
-    // -------------------------------------------------------------
-    async function handlePaymentSuccess() {
-        setStep(5);
+    // Ketika Pembayaran Berhasil
+    function handlePaymentSuccess() {
+        paymentGateBox.classList.add('hidden');
+        postPaymentBox.classList.remove('hidden');
 
         const hdDataUrl = state.compositeResultCanvas.toDataURL('image/png');
         printImageEl.src = hdDataUrl;
     }
 
-    // Fungsi Cetak Foto Khusus Kertas Foto (Tanpa Lebih Kertas Putih)
+    // Cetak Foto Bersih Tanpa Margin Lebihan
     function printDirectPhoto(dataUrl) {
-        // Buat iframe tersembunyi agar mencetak HANYA foto tanpa header URL browser & tanpa kelebihan kertas
         const iframe = document.createElement('iframe');
         iframe.style.position = 'fixed';
         iframe.style.right = '0';
@@ -757,13 +820,11 @@ document.addEventListener('DOMContentLoaded', () => {
         `);
         doc.close();
 
-        // Bersihkan iframe setelah print dialog selesai
         setTimeout(() => {
             if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
         }, 5000);
     }
 
-    // Aksi Print Kertas Foto Bersih
     document.getElementById('btn-print-action').addEventListener('click', () => {
         const hdDataUrl = state.compositeResultCanvas ? state.compositeResultCanvas.toDataURL('image/png') : printImageEl.src;
         if (hdDataUrl) {
@@ -773,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Aksi Download Langsung
     document.getElementById('btn-download-png').addEventListener('click', () => {
         triggerDownload(state.compositeResultCanvas.toDataURL('image/png'), 'QXUAN-PHOTOBOOTH.png');
     });
@@ -795,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
     }
 
-    // Reset Selesai Sesi Baru (Popup Konfirmasi Elegan)
+    // Keluar & Sesi Baru
     document.getElementById('btn-new-session').addEventListener('click', () => {
         showModal({
             title: 'Keluar dari Sesi Foto?',
@@ -810,17 +870,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // -------------------------------------------------------------
-    // 11. FULLSCREEN MODE TOGGLE
-    // -------------------------------------------------------------
+    // Fullscreen Mode Toggle
     const btnFullscreen = document.getElementById('btn-fullscreen');
-    btnFullscreen.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.warn('[Fullscreen] Gagal masuk mode layar penuh:', err);
-            });
-        } else {
-            document.exitFullscreen();
-        }
-    });
+    if (btnFullscreen) {
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn('[Fullscreen] Gagal masuk mode layar penuh:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    }
 });

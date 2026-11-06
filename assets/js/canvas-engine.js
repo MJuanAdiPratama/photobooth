@@ -1,47 +1,57 @@
 /**
- * Qxuan Photobooth - Canvas Core Engine (Color Studio Edition)
- * Menangani pra-pemrosesan (Auto-Contrast & Sharpening), 8 filter visual studio dramatis,
- * palet warna bingkai studio terlengkap (24+ warna), 6 variasi sudut foto inovatif, dan ekspor HD 300 DPI.
+ * Qxuan Photobooth - Canvas Core Engine
+ * Arsitektur Render 4-Layer:
+ * Layer 1: Latar Belakang (Warna dasar & tekstur)
+ * Layer 2: Foto-foto Jepretan (dengan Efek Warna Instagram)
+ * Layer 3: Overlay Bingkai Transparan (Polos, Polaroid, Bioskop, Batik, Karakter)
+ * Layer 4: Teks dan Stiker Tambahan
  */
 
 class CanvasEngine {
     constructor() {
-        // Palet Warna Bingkai Studio Terlengkap (Netral, Cerah/Karakter, & Deep/Royal)
+        // Preset Efek Warna Instagram (CSS Filter Matrix)
+        this.colorEffects = {
+            'normal':   { name: 'Normal',       filter: 'none' },
+            'vintage':  { name: 'Vintage',      filter: 'sepia(0.4) contrast(1.2) brightness(0.9) saturate(1.3)' },
+            'bw':       { name: 'Hitam Putih',  filter: 'grayscale(1) contrast(1.3)' },
+            'warm':     { name: 'Hangat',       filter: 'sepia(0.25) saturate(1.4) brightness(1.05)' },
+            'cool':     { name: 'Sejuk',        filter: 'hue-rotate(180deg) sepia(0.15) saturate(1.1)' },
+            'dramatic': { name: 'Dramatis',     filter: 'contrast(1.5) saturate(1.2) brightness(0.9)' },
+            'soft':     { name: 'Soft',         filter: 'brightness(1.15) contrast(0.9) saturate(0.9)' },
+            'retro':    { name: 'Retro',        filter: 'sepia(0.5) hue-rotate(-30deg) contrast(1.1)' }
+        };
+
+        // Tema Bingkai per Kategori (Polos, Polaroid, Bioskop, Batik, Karakter)
         this.frameThemes = {
-            // Netral & Pastel Studio
-            'white':          { name: 'Studio White',    bg: '#FFFFFF', text: '#18181B', border: '#E4E4E7' },
-            'latte':          { name: 'Warm Latte',      bg: '#F5F0EA', text: '#2C2723', border: '#E5DDD3' },
-            'cream':          { name: 'Vintage Cream',   bg: '#FFFDF7', text: '#3A3834', border: '#ECE6DA' },
-            'sand':           { name: 'Desert Sand',     bg: '#EFEBE9', text: '#4E342E', border: '#D7CCC8' },
-            'sage':           { name: 'Soft Sage',       bg: '#E2E8E2', text: '#283329', border: '#CDD7CD' },
-            'blush':          { name: 'Pastel Blush',    bg: '#F8ECEC', text: '#3E2A2A', border: '#EBD4D4' },
-            'lavender':       { name: 'Lilac Lavender',  bg: '#EDE7F6', text: '#311B92', border: '#D1C4E9' },
-            'sky':            { name: 'Sky Breeze',      bg: '#E1F5FE', text: '#01579B', border: '#B3E5FC' },
-            'butter':         { name: 'Butter Yellow',   bg: '#FFFDE7', text: '#5D4037', border: '#FFF9C4' },
+            // 1. Polos (Warna dasar & Pastel)
+            'polos_putih':    { category: 'polos', name: 'Putih', bg: '#FFFFFF', text: '#18181B', border: '#E4E4E7' },
+            'polos_hitam':    { category: 'polos', name: 'Hitam', bg: '#18181B', text: '#FFFFFF', border: '#27272A' },
+            'polos_pink':     { category: 'polos', name: 'Pastel Pink', bg: '#FDE2E4', text: '#5E3038', border: '#FAC1C6' },
+            'polos_biru':     { category: 'polos', name: 'Pastel Biru', bg: '#DBEAFE', text: '#1E3A8A', border: '#BFDBFE' },
+            'polos_krem':     { category: 'polos', name: 'Pastel Krem', bg: '#FEF3C7', text: '#78350F', border: '#FDE68A' },
+            'polos_sage':     { category: 'polos', name: 'Pastel Sage', bg: '#D1FAE5', text: '#064E3B', border: '#A7F3D0' },
+            'polos_lavender': { category: 'polos', name: 'Pastel Lavender', bg: '#EDE9FE', text: '#4C1D95', border: '#DDD6FE' },
 
-            // Warna Vibrant & Cerah Pop
-            'doraemon_blue':  { name: 'Bright Cyan Blue',bg: '#0096E6', text: '#FFFFFF', border: '#81D4FA' },
-            'sunny_yellow':   { name: 'Sunny Yellow',    bg: '#FFD54F', text: '#3E2723', border: '#FFE082' },
-            'hokage_orange':  { name: 'Sunset Orange',   bg: '#FF6F00', text: '#FFFFFF', border: '#FFA726' },
-            'hero_red':       { name: 'Scarlet Red',     bg: '#DC2626', text: '#FFFFFF', border: '#EF4444' },
-            'anfield_red':    { name: 'Crimson Red',     bg: '#C8102E', text: '#FFFFFF', border: '#F87171' },
-            'garnet_wine':    { name: 'Garnet Wine',     bg: '#A50044', text: '#FFFFFF', border: '#FB7185' },
-            'crimson':        { name: 'Crimson Velvet',  bg: '#881337', text: '#FFFFFF', border: '#9F1239' },
-            'terracotta':     { name: 'Warm Terracotta', bg: '#9A3412', text: '#FFFFFF', border: '#C2410C' },
+            // 2. Polaroid (Gaya kertas Instax dengan area teks di bawah)
+            'polaroid_klasik':  { category: 'polaroid', name: 'Polaroid Klasik', bg: '#FDFBF7', text: '#1F2937', border: '#E5E7EB', type: 'classic' },
+            'polaroid_vintage': { category: 'polaroid', name: 'Polaroid Vintage', bg: '#F6F1E9', text: '#4A3E3D', border: '#D5C7B6', type: 'vintage' },
 
-            // Warna Deep, Royal & Gelap Elegan
-            'royal_blue':     { name: 'Royal Sapphire',  bg: '#004D98', text: '#FFFFFF', border: '#3B82F6' },
-            'chelsea_blue':   { name: 'Deep Cobalt',     bg: '#034694', text: '#FFFFFF', border: '#2563EB' },
-            'classic_navy':   { name: 'Midnight Navy',   bg: '#0F172A', text: '#FFFFFF', border: '#1E293B' },
-            'emerald_green':  { name: 'Emerald Green',   bg: '#047857', text: '#FFFFFF', border: '#059669' },
-            'forest':         { name: 'Forest Pine',     bg: '#14532D', text: '#FFFFFF', border: '#166534' },
-            'black':          { name: 'Matte Obsidian',  bg: '#18181B', text: '#FFFFFF', border: '#27272A' },
-            'pitch_black':    { name: 'Jet Black',       bg: '#09090B', text: '#FFFFFF', border: '#18181B' }
+            // 3. Bioskop (Mall Photobooth Aesthetic Rol Film 35mm)
+            'bioskop_35mm':     { category: 'bioskop', name: 'Rol Film 35mm', bg: '#0A0A0C', text: '#FBBF24', border: '#F59E0B', type: 'film35' },
+            'bioskop_premiere': { category: 'bioskop', name: 'Tiket Bioskop', bg: '#1C1917', text: '#FDE047', border: '#CA8A04', type: 'premiere' },
+
+            // 4. Batik (Overlay motif batik khas Indonesia)
+            'batik_parang':     { category: 'batik', name: 'Batik Parang', bg: '#1E1B18', text: '#D4AF37', border: '#B8860B', type: 'parang' },
+            'batik_kawung':     { category: 'batik', name: 'Batik Kawung', bg: '#FAF8F5', text: '#78350F', border: '#B45309', type: 'kawung' },
+
+            // 5. Karakter (Overlay ilustrasi pojok bingkai ala photobooth mall)
+            'karakter_cute':    { category: 'karakter', name: 'Y2K Star & Bear', bg: '#FFF0F5', text: '#BE185D', border: '#F472B6', type: 'cute' },
+            'karakter_ribbon':  { category: 'karakter', name: 'Pita & Sparkle', bg: '#F5F3FF', text: '#6D28D9', border: '#A78BFA', type: 'ribbon' }
         };
     }
 
     /**
-     * Menerapkan pra-pemrosesan otomatis: Sharpening 3x3 convolution & Dynamic Auto-Contrast
+     * Menerapkan pra-pemrosesan otomatis: Sharpening kernel & Auto-Contrast
      */
     enhanceRawCapture(canvas) {
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -49,7 +59,6 @@ class CanvasEngine {
 
         this.applyAutoContrast(imgData);
 
-        // Penajaman cerdas: Jalankan kernel konvolusi cepat jika piksel di bawah batas aman agar smartphone tetap gesit
         if (canvas.width * canvas.height <= 2500000) {
             const sharpenedData = this.applySharpenKernel(imgData, canvas.width, canvas.height, 0.25);
             ctx.putImageData(sharpenedData, 0, 0);
@@ -65,7 +74,6 @@ class CanvasEngine {
         const totalPixels = d.length / 4;
         const hist = new Uint32Array(256);
 
-        // Sampling cepat setiap 4 piksel untuk mempercepat perhitungan histogram tanpa kehilangan akurasi
         for (let i = 0; i < d.length; i += 16) {
             const lum = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
             hist[lum]++;
@@ -102,7 +110,7 @@ class CanvasEngine {
         }
     }
 
-    applySharpenKernel(imgData, width, height, amount = 0.35) {
+    applySharpenKernel(imgData, width, height, amount = 0.3) {
         const src = imgData.data;
         const output = new ImageData(new Uint8ClampedArray(src), width, height);
         const dst = output.data;
@@ -113,7 +121,6 @@ class CanvasEngine {
         for (let y = 1; y < height - 1; y++) {
             for (let x = 1; x < width - 1; x++) {
                 const idx = (y * width + x) * 4;
-
                 for (let c = 0; c < 3; c++) {
                     const top    = ((y - 1) * width + x) * 4 + c;
                     const bottom = ((y + 1) * width + x) * 4 + c;
@@ -132,160 +139,45 @@ class CanvasEngine {
     }
 
     /**
-     * Menerapkan 8 filter visual transformatif & dramatis ke Canvas
+     * Menerapkan Efek Warna Instagram ke Canvas Foto
      */
-    applyFilter(sourceCanvas, filterType = 'normal') {
-        const destCanvas = document.createElement('canvas');
-        destCanvas.width = sourceCanvas.width;
-        destCanvas.height = sourceCanvas.height;
-        const ctx = destCanvas.getContext('2d', { willReadFrequently: true });
+    applyColorFilter(sourceCanvas, effectKey = 'normal') {
+        const dest = document.createElement('canvas');
+        dest.width = sourceCanvas.width;
+        dest.height = sourceCanvas.height;
+        const ctx = dest.getContext('2d');
+
+        const effect = this.colorEffects[effectKey] || this.colorEffects.normal;
+
+        if (effect.filter && effect.filter !== 'none') {
+            ctx.filter = effect.filter;
+        }
+
         ctx.drawImage(sourceCanvas, 0, 0);
+        ctx.filter = 'none';
 
-        if (filterType === 'normal') {
-            return destCanvas;
-        }
-
-        const imgData = ctx.getImageData(0, 0, destCanvas.width, destCanvas.height);
-        const d = imgData.data;
-
-        switch (filterType) {
-            case 'smooth_glow':
-                this.applyHaruGlow(ctx, destCanvas, imgData);
-                return destCanvas;
-
-            case 'noir_contrast':
-                for (let i = 0; i < d.length; i += 4) {
-                    let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-                    gray = (gray - 128) * 1.55 + 128;
-                    gray = Math.min(255, Math.max(0, gray));
-                    d[i] = gray; d[i + 1] = gray; d[i + 2] = gray;
-                }
-                break;
-
-            case 'vintage_film':
-                for (let i = 0; i < d.length; i += 4) {
-                    let r = d[i], g = d[i + 1], b = d[i + 2];
-                    r = Math.min(255, r * 1.15 + 18);
-                    g = Math.min(255, g * 1.05 + 10);
-                    b = Math.max(22, b * 0.82 + 12);
-                    d[i] = r; d[i + 1] = g; d[i + 2] = b;
-                }
-                break;
-
-            case 'korean_pastel':
-                for (let i = 0; i < d.length; i += 4) {
-                    let r = d[i], g = d[i + 1], b = d[i + 2];
-                    r = Math.min(255, r * 1.08 + 24);
-                    g = Math.min(255, g * 0.98 + 14);
-                    b = Math.min(255, b * 0.95 + 28);
-                    d[i] = r; d[i + 1] = g; d[i + 2] = b;
-                }
-                break;
-
-            case 'cinematic_teal':
-                for (let i = 0; i < d.length; i += 4) {
-                    let r = d[i], g = d[i + 1], b = d[i + 2];
-                    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                    if (lum < 128) {
-                        r = Math.max(0, r * 0.78);
-                        g = Math.min(255, g * 1.08 + 6);
-                        b = Math.min(255, b * 1.35 + 16);
-                    } else {
-                        r = Math.min(255, r * 1.25 + 12);
-                        g = Math.min(255, g * 1.05 + 4);
-                        b = Math.max(0, b * 0.82);
-                    }
-                    d[i] = r; d[i + 1] = g; d[i + 2] = b;
-                }
-                break;
-
-            case 'retro_90s':
-                for (let i = 0; i < d.length; i += 4) {
-                    let r = d[i], g = d[i + 1], b = d[i + 2];
-                    r = (r - 128) * 1.25 + 138;
-                    g = (g - 128) * 1.18 + 128;
-                    b = (b - 128) * 1.05 + 110;
-                    d[i]     = Math.min(255, Math.max(0, r));
-                    d[i + 1] = Math.min(255, Math.max(0, g));
-                    d[i + 2] = Math.min(255, Math.max(0, b));
-                }
-                break;
-
-            case 'cyber_vivid':
-                for (let i = 0; i < d.length; i += 4) {
-                    let r = d[i], g = d[i + 1], b = d[i + 2];
-                    r = (r - 128) * 1.45 + 132;
-                    g = (g - 128) * 1.35 + 125;
-                    b = (b - 128) * 1.50 + 140;
-                    d[i]     = Math.min(255, Math.max(0, r));
-                    d[i + 1] = Math.min(255, Math.max(0, g));
-                    d[i + 2] = Math.min(255, Math.max(0, b));
-                }
-                break;
-
-            case 'sepia':
-                for (let i = 0; i < d.length; i += 4) {
-                    const r = d[i], g = d[i + 1], b = d[i + 2];
-                    d[i]     = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189) + 12);
-                    d[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168) + 6);
-                    d[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-                }
-                break;
-        }
-
-        ctx.putImageData(imgData, 0, 0);
-        return destCanvas;
-    }
-
-    applyHaruGlow(ctx, canvas, imgData) {
-        const d = imgData.data;
-        const w = canvas.width;
-        const h = canvas.height;
-        const orig = new Uint8ClampedArray(d);
-
-        for (let y = 1; y < h - 1; y += 2) {
-            for (let x = 1; x < w - 1; x += 2) {
-                const idx = (y * w + x) * 4;
-                const r = orig[idx], g = orig[idx + 1], b = orig[idx + 2];
-                const isSkin = (r > 90 && g > 35 && b > 20 && Math.abs(r - g) > 12 && r > g && r > b);
-                if (isSkin) {
-                    let avgR = 0, avgG = 0, avgB = 0, cnt = 0;
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            const n = ((y + dy) * w + (x + dx)) * 4;
-                            avgR += orig[n]; avgG += orig[n + 1]; avgB += orig[n + 2]; cnt++;
-                        }
-                    }
-                    d[idx]     = (r * 0.35) + ((avgR / cnt) * 0.65);
-                    d[idx + 1] = (g * 0.35) + ((avgG / cnt) * 0.65);
-                    d[idx + 2] = (b * 0.35) + ((avgB / cnt) * 0.65);
-                }
-            }
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = 0.22;
-        ctx.filter = 'blur(10px) brightness(1.2)';
-        ctx.drawImage(canvas, 0, 0);
-        ctx.restore();
+        return dest;
     }
 
     /**
-     * Membangun Kolase Komposisi HD (Single, 2x1, 2x2, 3x1)
+     * Kompilasi 4-Layer Render:
+     * Layer 1: Latar Belakang
+     * Layer 2: Foto-foto Jepretan (dengan filter)
+     * Layer 3: Overlay Bingkai Transparan
+     * Layer 4: Teks dan Stiker Tambahan
      */
     composeCollage({
         photoCanvases,
         layoutMode = 'single',
-        themeKey = 'white',
-        dateString = '',
-        frameStyle = 'solid', // 'solid', 'rounded', 'washi_tape', 'film_strip', 'double_border', 'floating_shadow'
-        targetDPI = 300
+        themeKey = 'polos_putih',
+        colorEffectKey = 'normal',
+        customText = '',
+        stickers = []
     }) {
-        const theme = this.frameThemes[themeKey] || this.frameThemes.white;
+        const theme = this.frameThemes[themeKey] || this.frameThemes.polos_putih;
         const count = photoCanvases.length;
 
+        // Tentukan resolusi kanvas berdasarkan tata letak
         let canvasW = 1200;
         let canvasH = 1800;
         let cols = 1;
@@ -294,11 +186,9 @@ class CanvasEngine {
         if (layoutMode === 'single') {
             const first = photoCanvases[0];
             if (first && first.width > first.height) {
-                // Orientasi Lanskap (Mendatar)
                 canvasW = 1800;
                 canvasH = 1350;
             } else {
-                // Orientasi Potret (Tegak)
                 canvasW = 1200;
                 canvasH = 1800;
             }
@@ -318,14 +208,13 @@ class CanvasEngine {
         outCanvas.height = canvasH;
         const ctx = outCanvas.getContext('2d');
 
-        // 1. Gambar latar belakang bingkai warna solid bersih
-        ctx.fillStyle = theme.bg;
-        ctx.fillRect(0, 0, canvasW, canvasH);
+        // Margin & Gutter
+        const isPolaroid = theme.category === 'polaroid';
+        const isFilm = theme.category === 'bioskop';
 
-        // 2. Margin & Gutter
-        const outerMargin = Math.round(canvasW * 0.055);
+        const outerMargin = isFilm ? Math.round(canvasW * 0.08) : Math.round(canvasW * 0.055);
         const gutter = Math.round(canvasW * 0.028);
-        const footerHeight = Math.round(canvasH * 0.11);
+        const footerHeight = isPolaroid ? Math.round(canvasH * 0.17) : Math.round(canvasH * 0.11);
 
         const availableW = canvasW - (outerMargin * 2) - (gutter * (cols - 1));
         const availableH = canvasH - (outerMargin * 2) - footerHeight - (gutter * (rows - 1));
@@ -333,7 +222,23 @@ class CanvasEngine {
         const cellW = availableW / cols;
         const cellH = availableH / rows;
 
-        // 3. Render setiap sel foto dengan gaya sudut (frameStyle) terpilih
+        // =====================================================================
+        // LAYER 1: LATAR BELAKANG
+        // =====================================================================
+        ctx.fillStyle = theme.bg;
+        ctx.fillRect(0, 0, canvasW, canvasH);
+
+        if (isPolaroid) {
+            // Tekstur halus kertas polaroid
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.015)';
+            ctx.fillRect(0, 0, canvasW, canvasH);
+        }
+
+        // =====================================================================
+        // LAYER 2: FOTO-FOTO JEPRETAN (DENGAN EFEK WARNA INSTAGRAM)
+        // =====================================================================
+        const cellBoxes = [];
+
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const photoIdx = (r * cols) + c;
@@ -343,24 +248,18 @@ class CanvasEngine {
                 const cellX = outerMargin + c * (cellW + gutter);
                 const cellY = outerMargin + r * (cellH + gutter);
 
+                cellBoxes.push({ x: cellX, y: cellY, w: cellW, h: cellH });
+
+                // Gambar foto
                 ctx.save();
-
-                // GAYA 1: 3D Floating Shadow (Bayangan Timbul)
-                if (frameStyle === 'floating_shadow') {
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-                    ctx.shadowBlur = 24;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 12;
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(cellX, cellY, cellW, cellH);
-                    ctx.shadowColor = 'transparent';
-                }
-
-                // GAYA 2: Curved Korean Style (Sudut Melengkung Halus)
-                if (frameStyle === 'rounded') {
-                    this.roundRect(ctx, cellX, cellY, cellW, cellH, 26);
+                if (theme.category === 'polaroid') {
+                    // Halus rounded untuk polaroid window
+                    this.roundRect(ctx, cellX, cellY, cellW, cellH, 6);
                     ctx.clip();
-                } else if (frameStyle === 'solid' || frameStyle === 'double_border' || frameStyle === 'washi_tape' || frameStyle === 'film_strip') {
+                } else if (theme.category === 'karakter') {
+                    this.roundRect(ctx, cellX, cellY, cellW, cellH, 16);
+                    ctx.clip();
+                } else {
                     ctx.beginPath();
                     ctx.rect(cellX, cellY, cellW, cellH);
                     ctx.clip();
@@ -368,99 +267,241 @@ class CanvasEngine {
 
                 this.drawImageCover(ctx, photo, cellX, cellY, cellW, cellH);
                 ctx.restore();
-
-                // DEKORASI GAYA LANJUTAN:
-                if (frameStyle === 'double_border') {
-                    ctx.strokeStyle = theme.border || '#18181B';
-                    ctx.lineWidth = 2.5;
-                    ctx.strokeRect(cellX - 4, cellY - 4, cellW + 8, cellH + 8);
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(cellX - 8, cellY - 8, cellW + 16, cellH + 16);
-                }
-
-                if (frameStyle === 'washi_tape') {
-                    this.drawWashiTape(ctx, cellX, cellY, cellW, cellH);
-                }
-
-                if (frameStyle === 'film_strip') {
-                    this.drawFilmSprockets(ctx, cellX, cellY, cellW, cellH);
-                }
             }
         }
 
-        // 4. Render Footer & Watermark Elegan di samping tanggal
-        this.renderFooterText(ctx, canvasW, canvasH, footerHeight, theme, dateString);
+        // =====================================================================
+        // LAYER 3: OVERLAY BINGKAI TRANSPARAN (DI ATAS FOTO)
+        // =====================================================================
+        this.renderFrameOverlay(ctx, canvasW, canvasH, cellBoxes, theme);
+
+        // =====================================================================
+        // LAYER 4: TEKS ATAU STIKER TAMBAHAN
+        // =====================================================================
+        this.renderDecorationsAndText(ctx, canvasW, canvasH, footerHeight, theme, customText, stickers);
 
         return outCanvas;
     }
 
     /**
-     * Menggambar teks branding studio permanen di samping tanggal
+     * Layer 3: Render Overlay Bingkai Transparan
      */
-    renderFooterText(ctx, canvasW, canvasH, footerHeight, theme, dateString) {
-        const footerY = canvasH - (footerHeight * 0.45);
-        const activeDate = dateString || new Date().toLocaleDateString('id-ID', {
+    renderFrameOverlay(ctx, canvasW, canvasH, cellBoxes, theme) {
+        ctx.save();
+
+        if (theme.category === 'polos') {
+            // Bingkai Garis Minimalis Bersih
+            ctx.strokeStyle = theme.border || '#E4E4E7';
+            ctx.lineWidth = Math.max(2, Math.round(canvasW * 0.003));
+            cellBoxes.forEach(box => {
+                ctx.strokeRect(box.x - 1, box.y - 1, box.w + 2, box.h + 2);
+            });
+        } else if (theme.category === 'polaroid') {
+            // Efek Kertas Polaroid Instax: Bayangan tepi sel & garis pembatas
+            cellBoxes.forEach(box => {
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+                ctx.lineWidth = 2;
+                this.roundRect(ctx, box.x, box.y, box.w, box.h, 6);
+                ctx.stroke();
+
+                // Garis aksen polaroid vintage jika ada
+                if (theme.type === 'vintage') {
+                    ctx.strokeStyle = 'rgba(120, 80, 40, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(box.x + 3, box.y + 3, box.w - 6, box.h - 6);
+                }
+            });
+        } else if (theme.category === 'bioskop') {
+            // Rol Film 35mm Bioskop Mall Photobooth Aesthetic
+            this.renderFilmOverlay(ctx, canvasW, canvasH, cellBoxes, theme);
+        } else if (theme.category === 'batik') {
+            // Motif Batik Tradisional Elegan di Pinggiran Foto
+            this.renderBatikOverlay(ctx, canvasW, canvasH, cellBoxes, theme);
+        } else if (theme.category === 'karakter') {
+            // Ilustrasi Karakter & Doodle di Pojok Bingkai
+            this.renderKarakterOverlay(ctx, canvasW, canvasH, cellBoxes, theme);
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * Overlay Bioskop: Rol Film 35mm dengan lubang sprocket dan timecode
+     */
+    renderFilmOverlay(ctx, canvasW, canvasH, cellBoxes, theme) {
+        ctx.save();
+
+        const holeW = Math.round(canvasW * 0.024);
+        const holeH = Math.round(canvasH * 0.018);
+        const holeRadius = 3;
+        const step = Math.round(canvasH * 0.038);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+
+        // Lubang sprocket kiri dan kanan
+        const leftHoleX = Math.round(canvasW * 0.022);
+        const rightHoleX = canvasW - leftHoleX - holeW;
+
+        for (let y = Math.round(canvasH * 0.03); y < canvasH - Math.round(canvasH * 0.03); y += step) {
+            this.roundRect(ctx, leftHoleX, y, holeW, holeH, holeRadius);
+            ctx.fill();
+            ctx.stroke();
+
+            this.roundRect(ctx, rightHoleX, y, holeW, holeH, holeRadius);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // Teks dan Frame Stamp Bioskop (01A, 02A, 35mm KODAK MOTION)
+        ctx.fillStyle = '#FBBF24';
+        ctx.font = `700 ${Math.max(10, Math.round(canvasW * 0.016))}px monospace`;
+        ctx.textBaseline = 'middle';
+
+        cellBoxes.forEach((box, idx) => {
+            // Garis tipis pembatas film
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(box.x, box.y, box.w, box.h);
+
+            // Stamp frame count
+            ctx.fillText(`▶ 0${idx + 1}A`, box.x + 8, box.y + box.h + 14);
+            ctx.fillText(`35MM FILM`, box.x + box.w - 75, box.y + box.h + 14);
+        });
+
+        ctx.restore();
+    }
+
+    /**
+     * Overlay Batik: Ornamen Batik Parang & Kawung di Pinggiran Foto
+     */
+    renderBatikOverlay(ctx, canvasW, canvasH, cellBoxes, theme) {
+        ctx.save();
+        const strokeColor = theme.border || '#D4AF37';
+
+        cellBoxes.forEach(box => {
+            // Border luar berornamen
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(box.x - 3, box.y - 3, box.w + 6, box.h + 6);
+
+            // Ornamen sudut batik
+            const cornerSize = Math.round(canvasW * 0.035);
+            this.drawBatikCorner(ctx, box.x - 3, box.y - 3, cornerSize, strokeColor, 1, 1);
+            this.drawBatikCorner(ctx, box.x + box.w + 3, box.y - 3, cornerSize, strokeColor, -1, 1);
+            this.drawBatikCorner(ctx, box.x - 3, box.y + box.h + 3, cornerSize, strokeColor, 1, -1);
+            this.drawBatikCorner(ctx, box.x + box.w + 3, box.y + box.h + 3, cornerSize, strokeColor, -1, -1);
+        });
+
+        ctx.restore();
+    }
+
+    drawBatikCorner(ctx, x, y, size, color, dirX, dirY) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + (dirX * size), y);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x, y + (dirY * size));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x + (dirX * size * 0.5), y + (dirY * size * 0.5), size * 0.25, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    /**
+     * Overlay Karakter: Ilustrasi Y2K Star, Bear & Deco Ribbon di Pojok Bingkai
+     */
+    renderKarakterOverlay(ctx, canvasW, canvasH, cellBoxes, theme) {
+        ctx.save();
+
+        cellBoxes.forEach(box => {
+            // Garis lembut warna pastel
+            ctx.strokeStyle = theme.border || '#F472B6';
+            ctx.lineWidth = 3;
+            this.roundRect(ctx, box.x, box.y, box.w, box.h, 16);
+            ctx.stroke();
+
+            // Doodle pojok: Bintang & Sparkles
+            const iconSize = Math.round(canvasW * 0.045);
+            ctx.font = `${iconSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            if (theme.type === 'cute') {
+                ctx.fillText('⭐', box.x + 18, box.y + 18);
+                ctx.fillText('✨', box.x + box.w - 18, box.y + 18);
+                ctx.fillText('🐾', box.x + 18, box.y + box.h - 18);
+                ctx.fillText('⭐', box.x + box.w - 18, box.y + box.h - 18);
+            } else {
+                ctx.fillText('🎀', box.x + 20, box.y + 18);
+                ctx.fillText('💖', box.x + box.w - 20, box.y + 18);
+                ctx.fillText('✨', box.x + 20, box.y + box.h - 18);
+                ctx.fillText('🎀', box.x + box.w - 20, box.y + box.h - 18);
+            }
+        });
+
+        ctx.restore();
+    }
+
+    /**
+     * Layer 4: Render Teks & Stiker Tambahan
+     */
+    renderDecorationsAndText(ctx, canvasW, canvasH, footerHeight, theme, customText, stickers) {
+        ctx.save();
+
+        // 1. Teks Kustom Pengguna (jika ada)
+        if (customText && customText.trim()) {
+            const textY = canvasH - (footerHeight * 0.65);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const userFontSize = Math.max(16, Math.round(canvasW * 0.038));
+            ctx.font = `600 ${userFontSize}px "Plus Jakarta Sans", -apple-system, sans-serif`;
+            ctx.fillStyle = theme.text || '#18181B';
+            ctx.fillText(customText.trim(), canvasW / 2, textY);
+        }
+
+        // 2. Branding & Tanggal Permanen Studio
+        const footerY = canvasH - (footerHeight * 0.3);
+        const dateStr = new Date().toLocaleDateString('id-ID', {
             day: '2-digit', month: '2-digit', year: 'numeric'
         }).replace(/\//g, '.');
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        const stampFontSize = Math.max(14, Math.round(canvasW * 0.026));
-        ctx.font = `700 ${stampFontSize}px "Plus Jakarta Sans", "Inter", -apple-system, sans-serif`;
-        ctx.fillStyle = theme.text;
-        ctx.letterSpacing = '3px';
-        ctx.fillText(`• ${activeDate} • QXUAN PHOTOBOOTH •`, canvasW / 2, footerY);
-
-        const subFontSize = Math.max(10, Math.round(canvasW * 0.016));
-        ctx.font = `500 ${subFontSize}px "Inter", sans-serif`;
-        ctx.fillStyle = (theme.bg === '#18181B' || theme.bg === '#09090B' || theme.text === '#FFFFFF')
-            ? 'rgba(255, 255, 255, 0.65)' 
-            : 'rgba(24, 24, 27, 0.5)';
+        const stampFontSize = Math.max(11, Math.round(canvasW * 0.022));
+        ctx.font = `600 ${stampFontSize}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = theme.text || '#18181B';
         ctx.letterSpacing = '2px';
-        ctx.fillText(`AUTHENTIC STUDIO ARCHIVE • 300 DPI HD PRINT`, canvasW / 2, footerY + (subFontSize * 2));
-
+        ctx.fillText(`• ${dateStr} • QXUAN PHOTOBOOTH •`, canvasW / 2, footerY);
         ctx.letterSpacing = '0px';
-    }
 
-    drawWashiTape(ctx, x, y, w, h) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(255, 245, 230, 0.72)';
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.lineWidth = 1;
+        // 3. Stiker Tambahan Pengguna
+        if (Array.isArray(stickers) && stickers.length > 0) {
+            stickers.forEach(s => {
+                ctx.save();
+                const stickerSize = Math.round(canvasW * (s.scale || 0.08));
+                ctx.font = `${stickerSize}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
 
-        const tapeW = Math.round(w * 0.22);
-        const tapeH = 22;
+                // Posisi piksel dari persentase kanvas
+                const px = s.relX * canvasW;
+                const py = s.relY * canvasH;
 
-        ctx.translate(x + 10, y + 6);
-        ctx.rotate(-0.35);
-        ctx.fillRect(-tapeW/2, -tapeH/2, tapeW, tapeH);
-        ctx.strokeRect(-tapeW/2, -tapeH/2, tapeW, tapeH);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-        ctx.translate(x + w - 10, y + 6);
-        ctx.rotate(0.35);
-        ctx.fillRect(-tapeW/2, -tapeH/2, tapeW, tapeH);
-        ctx.strokeRect(-tapeW/2, -tapeH/2, tapeW, tapeH);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-        ctx.restore();
-    }
-
-    drawFilmSprockets(ctx, x, y, w, h) {
-        ctx.save();
-        ctx.fillStyle = '#09090B';
-        const holeW = 12;
-        const holeH = 18;
-        const holeRadius = 3;
-        const step = 32;
-
-        for (let py = y + 15; py < y + h - 15; py += step) {
-            this.roundRect(ctx, x - holeW - 6, py, holeW, holeH, holeRadius);
-            ctx.fill();
-            this.roundRect(ctx, x + w + 6, py, holeW, holeH, holeRadius);
-            ctx.fill();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                ctx.shadowBlur = 8;
+                ctx.fillText(s.emoji, px, py);
+                ctx.restore();
+            });
         }
+
         ctx.restore();
     }
 
